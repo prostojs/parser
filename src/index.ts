@@ -59,7 +59,7 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
         }
     }
 
-    public parse(src: string): TProstoParserContext<IdType> | void {
+    public parse(src: string): TProstoParserContext<IdType> {
         const l = src.length
         let pos = 0
         let index = 0
@@ -163,7 +163,7 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
                 const id = node.recognizes[i]
                 const n = this.getNode(id)
                 if (!n) {
-                    return this.panic(`Node ${ this.getLabel(id, true) } required by the node ${ this.getLabel(node.id, true) } not found.`)
+                    this.panic(`Node ${ this.getLabel(id, true) } required by the node ${ this.getLabel(node.id, true) } not found.`)
                 }
                 const matched = this.lookForStart(behind, here, n)  
                 if (matched) {
