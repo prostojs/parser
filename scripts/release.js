@@ -89,7 +89,7 @@ async function main() {
 
         step('Running lint...')
         if (!skipTests && !isDryRun) {
-            await run('npm', ['lint'])
+            await run('npm', ['run', 'lint'])
         } else {
             info(`(skipped)`)
         }
