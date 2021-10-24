@@ -88,7 +88,9 @@ function createConfig(format, output, plugins = []) {
   output.sourcemap = !!process.env.SOURCE_MAP
   output.externalLiveBindings = false
   output.globals = {
-    '@prostojs/dye': 'ProstoDye'
+    '@prostojs/dye': 'ProstoDye',
+    '@prostojs/tree': 'ProstoTree',
+    '@prostojs/logger': 'ProstoLogger',
   }
 
   if (isGlobalBuild) {
