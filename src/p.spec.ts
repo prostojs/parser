@@ -42,6 +42,7 @@ describe('ProstoParser', () => {
                     mapContent: {
                         key: (content) => content.shift(),
                     },
+                    popsAtEOFSource: true,
                     popsAfterNode: ENode.REGEX,
                     recognizes: [ENode.REGEX],
                 },
@@ -97,6 +98,7 @@ describe('ProstoParser', () => {
                     mapContent: {
                         key: (content) => content.shift(),
                     },
+                    popsAtEOFSource: true,
                     popsAfterNode: ENode.REGEX,
                     recognizes: [ENode.REGEX],
                 },
@@ -104,7 +106,7 @@ describe('ProstoParser', () => {
         })
 
         const result = parser.parse(
-            '/test/:name1-:name2(a(?:test(inside))b)/*(d)',
+            '/test/:name1-:name2(a(?:test(inside))b)/*(d)/test/*/:ending',
         )
         console.log(result?.toTree(true))
 
@@ -139,6 +141,24 @@ describe('ProstoParser', () => {
                   "_nodeId": 3,
                   "key": "*",
                   "regex": "(d)",
+                },
+                "/test/",
+                Object {
+                  "_content": Array [],
+                  "_index": 8,
+                  "_label": "Wildcard",
+                  "_level": 1,
+                  "_nodeId": 3,
+                  "key": "*",
+                },
+                "/",
+                Object {
+                  "_content": Array [],
+                  "_index": 9,
+                  "_label": "Parameter",
+                  "_level": 1,
+                  "_nodeId": 1,
+                  "key": "ending",
                 },
               ],
               "_index": 0,

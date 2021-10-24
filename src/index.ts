@@ -219,6 +219,10 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
         }
 
         if (context !== root) {
+            while (node.popsAtEOFSource && stack.length > 0) pop()
+        }
+
+        if (context !== root) {
             this.panic(`Unexpected end of the source string while parsing ${ this.getLabel(context._nodeId, true) } (${ context._index }) node.\n${ JSON.stringify(context._content) }`)
         }
 

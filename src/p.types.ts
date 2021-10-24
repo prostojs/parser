@@ -18,6 +18,7 @@ export interface TProstoParseNode<IdType extends TGenericNodeIdType = TGenericNo
     startsWith?: TProstoParserTokenDescripor<IdType>
     endsWith?: TProstoParserTokenDescripor<IdType>
     popsAfterNode?: IdType | IdType[]
+    popsAtEOFSource?: boolean
     mergeWith?: TPorstoParseNodeMergeOptions<IdType>[]
     skipToken?: string | string[] | RegExp,
     recognizes: IdType[]
