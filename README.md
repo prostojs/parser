@@ -1,6 +1,6 @@
 <p align="center">
 <img src="./docs/logo.png" width="100%" style="max-width: 900px" />
-<a  href="https://github.com/prostojs/logger/blob/main/LICENSE">
+<a  href="https://github.com/prostojs/parser/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-cyan?style=for-the-badge" />
 </a>
 </p>
