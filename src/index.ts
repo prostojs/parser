@@ -69,7 +69,7 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
             _level: 0,
             _nodeId: this.rootNode.id,
             _content: [],
-            toTree: (colored = false) => parserTree.render(root, colored),
+            toTree: (colored = false) => colored ? parserTree.render(root) : dye.strip(parserTree.render(root)),
         }
         const root = context
         const stack: TProstoParserContext<IdType>[] = []
