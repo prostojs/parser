@@ -18,7 +18,7 @@ const parserTree = new ProstoTree<TProstoParserContext | string | 0>({
     children: '_content',
     renderLabel: (node) => {
         if (typeof node === 'string') {
-            return styles.text('«' + node + '»')
+            return styles.text('«' + node.replace(/\n/g, '\\n') + '»')
         } else if (typeof node === 'object') {
             let keys = ''
             Object.keys(node).filter(key => key[0] !== '_' && key !== 'toTree').forEach(key => {
