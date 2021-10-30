@@ -1,6 +1,3 @@
-import { EProstoLogLevel } from '@prostojs/logger'
-import { TConsoleInterface } from '@prostojs/dye'
-
 export type TGenericNodeIdType = string | number
 
 export interface TProstoParserHoistOptions<IdType extends TGenericNodeIdType = TGenericNodeIdType> {
@@ -77,8 +74,6 @@ export interface TProstoParserNodeConstraits {
 }
 
 export interface TProstoParserOptions<IdType extends TGenericNodeIdType = TGenericNodeIdType> {
-    logger?: TConsoleInterface
-    logLevel?: EProstoLogLevel
     nodes: TProstoParseNode<IdType>[]
     rootNode: IdType
 }
