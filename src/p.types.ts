@@ -35,8 +35,8 @@ export interface TPorstoParseNodeMergeOptions<IdType extends TGenericNodeIdType 
 
 export interface TProstoParserTokenDescripor<IdType extends TGenericNodeIdType = TGenericNodeIdType> {
     token: string | string[] | RegExp
-    omit?: boolean
-    eject?: boolean
+    omit?: boolean | ((data: TPorstoParserCallbackData<IdType>) => boolean)
+    eject?: boolean | ((data: TPorstoParserCallbackData<IdType>) => boolean)
     negativeLookBehind?: RegExp
     negativeLookAhead?: RegExp
     onMatchToken?: (data: TPorstoParserCallbackData<IdType>) => boolean

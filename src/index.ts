@@ -174,10 +174,10 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
             }
             if (matchedChild) {
                 let toAppend = ''
-                if (matchedChild.startsWith?.eject) {
+                if (evalBooleanProp(matchedChild.startsWith?.eject, matchRegex)) {
                     appendContent(matchedToken)
                     jump(matchedToken.length)
-                } else if (matchedChild.startsWith?.omit) {
+                } else if (evalBooleanProp(matchedChild.startsWith?.omit, matchRegex)) {
                     jump(matchedToken.length)
                 } else {
                     toAppend = src[pos]
@@ -201,9 +201,9 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
                     matchEndConfirmed = node.endsWith.onMatchToken(getCallbackData(matchedEnd))
                 }
                 if (matchEndConfirmed) {
-                    if (node.endsWith?.eject) {
+                    if (evalBooleanProp(node.endsWith?.eject, matchedEnd)) {
                         pop()
-                    } else if (node.endsWith?.omit) {
+                    } else if (evalBooleanProp(node.endsWith?.omit, matchedEnd)) {
                         jump(matchedToken.length)
                         pop()
                     } else {
@@ -227,6 +227,10 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
         }
 
         return root
+
+        function evalBooleanProp(prop: boolean | ((data: TPorstoParserCallbackData<IdType>) => boolean) | undefined, matched?: RegExpMatchArray) {
+            return typeof prop === 'function' ? prop(getCallbackData(matched)) : prop
+        }
 
         function push(newContext: Partial<TProstoParserContext<IdType>>) {
             index++
