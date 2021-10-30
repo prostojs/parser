@@ -1,3 +1,12 @@
+## [0.2.6](https://github.com/prostojs/parser/compare/v0.2.5...v0.2.6) (2021-10-30)
+
+
+### Bug Fixes
+
+* **tree:** adjust label quatod logic ([4db66e2](https://github.com/prostojs/parser/commit/4db66e2591b210a2d9237a9b9ff1fad34d53fd65))
+
+
+
 ## [0.2.5](https://github.com/prostojs/parser/compare/v0.2.4...v0.2.5) (2021-10-30)
 
 
