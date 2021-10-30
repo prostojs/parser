@@ -1,3 +1,12 @@
+## [0.2.7](https://github.com/prostojs/parser/compare/v0.2.6...v0.2.7) (2021-10-30)
+
+
+### Bug Fixes
+
+* **tree:** fix empty label extra space ([511a2c1](https://github.com/prostojs/parser/commit/511a2c1f9075424e14ea76250715a11bf95e5ec9))
+
+
+
 ## [0.2.6](https://github.com/prostojs/parser/compare/v0.2.5...v0.2.6) (2021-10-30)
 
 
