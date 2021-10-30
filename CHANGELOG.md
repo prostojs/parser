@@ -1,3 +1,12 @@
+## [0.2.4](https://github.com/prostojs/parser/compare/v0.2.3...v0.2.4) (2021-10-30)
+
+
+### Features
+
+* **icon:** icon support for node in tree ([0ac7034](https://github.com/prostojs/parser/commit/0ac7034e2c699504df5f48ca01fbd7c99756db33))
+
+
+
 ## [0.2.3](https://github.com/prostojs/parser/compare/v0.2.2...v0.2.3) (2021-10-30)
 
 
