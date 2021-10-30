@@ -27,7 +27,7 @@ const parserTree = new ProstoTree<TProstoParserContext | string | 0>({
                     keys += ' ' + styles.valuesDim(key + '(') + styles.values(val) + styles.valuesDim(')')
                 }
             })
-            return styles.node((node._icon || '◦') + ' ') + styles.nodeDim(node._label) + keys
+            return styles.node((node._icon || '◦') + (node._label ? ' ' : '')) + styles.nodeDim(node._label) + keys
         }
         return ''
     },
