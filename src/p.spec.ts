@@ -111,63 +111,69 @@ describe('ProstoParser', () => {
         console.log(result?.toTree(true))
 
         expect(result).toMatchInlineSnapshot(`
-            Object {
-              "_content": Array [
-                "/test/",
-                Object {
-                  "_content": Array [],
-                  "_index": 1,
-                  "_label": "Parameter",
-                  "_level": 1,
-                  "_nodeId": 1,
-                  "key": "name1",
-                },
-                "-",
-                Object {
-                  "_content": Array [],
-                  "_index": 2,
-                  "_label": "Parameter",
-                  "_level": 1,
-                  "_nodeId": 1,
-                  "key": "name2",
-                  "regex": "(a(?:test(?:inside))b)",
-                },
-                "/",
-                Object {
-                  "_content": Array [],
-                  "_index": 6,
-                  "_label": "Wildcard",
-                  "_level": 1,
-                  "_nodeId": 3,
-                  "key": "*",
-                  "regex": "(d)",
-                },
-                "/test/",
-                Object {
-                  "_content": Array [],
-                  "_index": 8,
-                  "_label": "Wildcard",
-                  "_level": 1,
-                  "_nodeId": 3,
-                  "key": "*",
-                },
-                "/",
-                Object {
-                  "_content": Array [],
-                  "_index": 9,
-                  "_label": "Parameter",
-                  "_level": 1,
-                  "_nodeId": 1,
-                  "key": "ending",
-                },
-              ],
-              "_index": 0,
-              "_label": "Static",
-              "_level": 0,
-              "_nodeId": 0,
-              "toTree": [Function],
-            }
-        `)
+Object {
+  "_content": Array [
+    "/test/",
+    Object {
+      "_content": Array [],
+      "_icon": undefined,
+      "_index": 1,
+      "_label": "Parameter",
+      "_level": 1,
+      "_nodeId": 1,
+      "key": "name1",
+    },
+    "-",
+    Object {
+      "_content": Array [],
+      "_icon": undefined,
+      "_index": 2,
+      "_label": "Parameter",
+      "_level": 1,
+      "_nodeId": 1,
+      "key": "name2",
+      "regex": "(a(?:test(?:inside))b)",
+    },
+    "/",
+    Object {
+      "_content": Array [],
+      "_icon": undefined,
+      "_index": 6,
+      "_label": "Wildcard",
+      "_level": 1,
+      "_nodeId": 3,
+      "key": "*",
+      "regex": "(d)",
+    },
+    "/test/",
+    Object {
+      "_content": Array [],
+      "_icon": undefined,
+      "_index": 8,
+      "_label": "Wildcard",
+      "_level": 1,
+      "_nodeId": 3,
+      "key": "*",
+    },
+    "/",
+    Object {
+      "_content": Array [],
+      "_icon": undefined,
+      "_index": 9,
+      "_label": "Parameter",
+      "_level": 1,
+      "_nodeId": 1,
+      "key": "ending",
+    },
+  ],
+  "_icon": undefined,
+  "_index": 0,
+  "_label": "Static",
+  "_level": 0,
+  "_nodeId": 0,
+  "toTree": [Function],
+}
+`)
     })
 
     it('must parse html', () => {
@@ -289,90 +295,99 @@ describe('ProstoParser', () => {
         console.log(result?.toTree(true))
 
         expect(result).toMatchInlineSnapshot(`
+Object {
+  "_content": Array [
+    Object {
+      "_content": Array [
+        Object {
+          "_content": Array [],
+          "_icon": undefined,
+          "_index": 3,
+          "_label": "attr",
+          "_level": 2,
+          "_nodeId": 2,
+          "key": "class",
+          "value": "abcde",
+        },
+        Object {
+          "_content": Array [],
+          "_icon": undefined,
+          "_index": 5,
+          "_label": "attr",
+          "_level": 2,
+          "_nodeId": 2,
+          "key": "style",
+          "value": "some: style",
+        },
+      ],
+      "_icon": undefined,
+      "_index": 1,
+      "_label": "tag",
+      "_level": 1,
+      "_nodeId": 1,
+      "endTagName": undefined,
+      "tagName": "div",
+    },
+    Object {
+      "_content": Array [
+        Object {
+          "_content": Array [],
+          "_icon": undefined,
+          "_index": 9,
+          "_label": "attr",
+          "_level": 2,
+          "_nodeId": 2,
+          "key": "dense",
+        },
+        Object {
+          "_content": Array [
+            " some-text ",
             Object {
               "_content": Array [
                 Object {
                   "_content": Array [
-                    Object {
-                      "_content": Array [],
-                      "_index": 3,
-                      "_label": "attr",
-                      "_level": 2,
-                      "_nodeId": 2,
-                      "key": "class",
-                      "value": "abcde",
-                    },
-                    Object {
-                      "_content": Array [],
-                      "_index": 5,
-                      "_label": "attr",
-                      "_level": 2,
-                      "_nodeId": 2,
-                      "key": "style",
-                      "value": "some: style",
-                    },
+                    " PPP ",
                   ],
-                  "_index": 1,
-                  "_label": "tag",
-                  "_level": 1,
-                  "_nodeId": 1,
-                  "endTagName": undefined,
-                  "tagName": "div",
-                },
-                Object {
-                  "_content": Array [
-                    Object {
-                      "_content": Array [],
-                      "_index": 9,
-                      "_label": "attr",
-                      "_level": 2,
-                      "_nodeId": 2,
-                      "key": "dense",
-                    },
-                    Object {
-                      "_content": Array [
-                        " some-text ",
-                        Object {
-                          "_content": Array [
-                            Object {
-                              "_content": Array [
-                                " PPP ",
-                              ],
-                              "_index": 13,
-                              "_label": "inner",
-                              "_level": 4,
-                              "_nodeId": 4,
-                            },
-                          ],
-                          "_index": 11,
-                          "_label": "tag",
-                          "_level": 3,
-                          "_nodeId": 1,
-                          "endTagName": "p",
-                          "tagName": "p",
-                        },
-                        " ",
-                      ],
-                      "_index": 10,
-                      "_label": "inner",
-                      "_level": 2,
-                      "_nodeId": 4,
-                    },
-                  ],
-                  "_index": 7,
-                  "_label": "tag",
-                  "_level": 1,
-                  "_nodeId": 1,
-                  "endTagName": "span",
-                  "tagName": "span",
+                  "_icon": undefined,
+                  "_index": 13,
+                  "_label": "inner",
+                  "_level": 4,
+                  "_nodeId": 4,
                 },
               ],
-              "_index": 0,
-              "_label": "Document",
-              "_level": 0,
-              "_nodeId": 0,
-              "toTree": [Function],
-            }
-        `)
+              "_icon": undefined,
+              "_index": 11,
+              "_label": "tag",
+              "_level": 3,
+              "_nodeId": 1,
+              "endTagName": "p",
+              "tagName": "p",
+            },
+            " ",
+          ],
+          "_icon": undefined,
+          "_index": 10,
+          "_label": "inner",
+          "_level": 2,
+          "_nodeId": 4,
+        },
+      ],
+      "_icon": undefined,
+      "_index": 7,
+      "_label": "tag",
+      "_level": 1,
+      "_nodeId": 1,
+      "endTagName": "span",
+      "tagName": "span",
+    },
+  ],
+  "_icon": undefined,
+  "_index": 0,
+  "_label": "Document",
+  "_level": 0,
+  "_nodeId": 0,
+  "toTree": [Function],
+}
+`)
     })
 })
