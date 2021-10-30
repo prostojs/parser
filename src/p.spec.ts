@@ -201,6 +201,7 @@ describe('ProstoParser', () => {
                         omit: true,
                         onMatchToken: ({ context, matched }) => {
                             context.endTagName = matched ? matched[1] : null
+                            return true
                         },
                     },
                     skipToken: /^\s+/,

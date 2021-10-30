@@ -41,7 +41,7 @@ export interface TProstoParserTokenDescripor<IdType extends TGenericNodeIdType =
     eject?: boolean
     negativeLookBehind?: RegExp
     negativeLookAhead?: RegExp
-    onMatchToken?: (data: TPorstoParserCallbackData<IdType>) => void
+    onMatchToken?: (data: TPorstoParserCallbackData<IdType>) => boolean
 }
 
 export interface TPorstoParserCallbackData<IdType extends TGenericNodeIdType = TGenericNodeIdType> {

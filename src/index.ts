@@ -159,13 +159,16 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
                 }
                 const matched = this.lookForStart(behind, here, n)  
                 if (matched) {
-                    if (node.startsWith?.onMatchToken) {
-                        node.startsWith.onMatchToken(getCallbackData(matched.match))
+                    let matchStartConfirmed = true
+                    if (matched.node.startsWith?.onMatchToken) {
+                        matchStartConfirmed = matched.node.startsWith.onMatchToken(getCallbackData(matched.match))
                     }
-                    matchedChild = matched.node
-                    matchedToken = matched.match[0]
-                    matchRegex = matched.match
-                    break
+                    if (matchStartConfirmed) {
+                        matchedChild = matched.node
+                        matchedToken = matched.match[0]
+                        matchRegex = matched.match
+                        break
+                    }
                 }
             }
             if (matchedChild) {
@@ -191,20 +194,23 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
             const matchedEnd = this.lookForEnd(behind, here, node)
             if (matchedEnd) {
                 matchedToken = matchedEnd[0]
+                let matchEndConfirmed = true
                 if (node.endsWith?.onMatchToken) {
-                    node.endsWith.onMatchToken(getCallbackData(matchedEnd))
+                    matchEndConfirmed = node.endsWith.onMatchToken(getCallbackData(matchedEnd))
                 }
-                if (node.endsWith?.eject) {
-                    pop()
-                } else if (node.endsWith?.omit) {
-                    jump(matchedToken.length)
-                    pop()
-                } else {
-                    appendContent(matchedToken)
-                    jump(matchedToken.length)
-                    pop()
+                if (matchEndConfirmed) {
+                    if (node.endsWith?.eject) {
+                        pop()
+                    } else if (node.endsWith?.omit) {
+                        jump(matchedToken.length)
+                        pop()
+                    } else {
+                        appendContent(matchedToken)
+                        jump(matchedToken.length)
+                        pop()
+                    }
+                    continue
                 }
-                continue
             }
             appendContent(src[pos])
             jump()
