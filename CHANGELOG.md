@@ -1,3 +1,12 @@
+## [0.2.5](https://github.com/prostojs/parser/compare/v0.2.4...v0.2.5) (2021-10-30)
+
+
+### Bug Fixes
+
+* **tree:** change label fallback to node id ([7e0c0fd](https://github.com/prostojs/parser/commit/7e0c0fd622775dfbd38c7f470adf226d61919b8a))
+
+
+
 ## [0.2.4](https://github.com/prostojs/parser/compare/v0.2.3...v0.2.4) (2021-10-30)
 
 
