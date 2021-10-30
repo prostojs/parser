@@ -1,17 +1,15 @@
 export * from './p.types'
-import { ProstoLogger } from '@prostojs/logger'
-import { dye, TConsoleInterface } from '@prostojs/dye'
 import { ProstoTree } from '@prostojs/tree'
 import { TProstoParserOptions, TGenericNodeIdType, TProstoParseNode, TProstoParserTokenDescripor,
     TProstoParserContext, TPorstoParserCallbackData, TProstoParserHoistOptions } from './p.types'
 
 const styles = {
-    banner: dye('yellow'),
-    text: dye('green'),
-    valuesDim: dye('cyan', 'dim'),
-    values: dye('cyan-bright'),
-    nodeDim: dye('yellow', 'dim'),
-    node: dye('yellow'),
+    banner: (s: string) => __DYE_RED__ + s + __DYE_COLOR_OFF__,
+    text: (s: string) => __DYE_GREEN__ + s + __DYE_COLOR_OFF__,
+    valuesDim: (s: string) => __DYE_CYAN__ + __DYE_DIM__ + s + __DYE_COLOR_OFF__ + __DYE_DIM_OFF__,
+    values: (s: string) => __DYE_CYAN_BRIGHT__ + s + __DYE_COLOR_OFF__,
+    nodeDim: (s: string) => __DYE_YELLOW__ + __DYE_DIM__ + s + __DYE_COLOR_OFF__ + __DYE_DIM_OFF__,
+    node: (s: string) => __DYE_YELLOW__ + s + __DYE_COLOR_OFF__,
 }
 
 const banner = styles.banner('[parser]')
@@ -36,17 +34,11 @@ const parserTree = new ProstoTree<TProstoParserContext | string | 0>({
 })
 
 export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType> {
-    protected readonly logger: TConsoleInterface
-
     protected readonly nodes: Record<IdType, TProstoParseNode<IdType>> = {} as Record<IdType, TProstoParseNode<IdType>>
 
     protected readonly rootNode: TProstoParseNode<IdType>
 
     constructor(protected options: TProstoParserOptions<IdType>) {
-        this.logger = options.logger || new ProstoLogger({
-            banner,
-            logLevel: options.logLevel || 0,
-        }) as TConsoleInterface
         options.nodes.forEach(node => {
             if (this.nodes[node.id]) {
                 this.panic(`Duplicate Node ID "[${ node.id }]".`)
@@ -69,7 +61,7 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
             _level: 0,
             _nodeId: this.rootNode.id,
             _content: [],
-            toTree: (colored = false) => colored ? parserTree.render(root) : dye.strip(parserTree.render(root)),
+            toTree: () => parserTree.render(root),
         }
         const root = context
         const stack: TProstoParserContext<IdType>[] = []
@@ -423,7 +415,7 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
     }
 
     protected panic(message: string) {
-        this.logger.error(message)
+        console.error(banner + __DYE_RED_BRIGHT__, message, __DYE_RESET__)
         throw new Error(message)
     }
 }
