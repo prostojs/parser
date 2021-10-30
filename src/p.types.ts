@@ -15,6 +15,7 @@ export interface TProstoParserHoistOptions<IdType extends TGenericNodeIdType = T
 export interface TProstoParseNode<IdType extends TGenericNodeIdType = TGenericNodeIdType> {
     id: IdType
     label?: string
+    icon?: string
     startsWith?: TProstoParserTokenDescripor<IdType>
     endsWith?: TProstoParserTokenDescripor<IdType>
     popsAfterNode?: IdType | IdType[]
@@ -65,6 +66,7 @@ export interface TProstoParserContext<IdType extends TGenericNodeIdType = TGener
     _level: number
     _nodeId: IdType
     _label: string
+    _icon?: string
     _content: (string | TProstoParserContext | 0)[]
     toTree: (colored?: boolean) => string
     [key: string]: IdType | (string | TProstoParserContext | 0)[] | string | number | TProstoParserContext<IdType> | unknown

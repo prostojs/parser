@@ -27,7 +27,7 @@ const parserTree = new ProstoTree<TProstoParserContext | string | 0>({
                     keys += ' ' + styles.valuesDim(key + '(') + styles.values(val) + styles.valuesDim(')')
                 }
             })
-            return styles.node('◦ ') + styles.nodeDim(node._label) + keys
+            return styles.node((node._icon || '◦') + ' ') + styles.nodeDim(node._label) + keys
         }
         return ''
     },
@@ -58,6 +58,7 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
         let context: TProstoParserContext<IdType> = {
             _index: index,
             _label: this.getLabel(this.rootNode.id),
+            _icon: this.rootNode.icon,
             _level: 0,
             _nodeId: this.rootNode.id,
             _content: [],
@@ -184,6 +185,7 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
                 }
                 push({
                     _nodeId: matchedChild.id,
+                    _icon: matchedChild.icon,
                     _content: toAppend ? [toAppend] : [],
                 })
                 if (matchedChild.onMatch) {
