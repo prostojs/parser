@@ -420,7 +420,7 @@ export class ProstoParser<IdType extends TGenericNodeIdType = TGenericNodeIdType
     public getLabel(id: IdType, quoted = false) {
         const quotes = quoted ? '"' : ''
         const label = this.getNode(id)?.label
-        return quotes + (typeof label === 'string' ? label : `[${id}]`) + quotes
+        return quotes + (!quoted && typeof label === 'string' || label ? label : `[${id}]`) + quotes
     }
 
     protected panic(message: string) {
