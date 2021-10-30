@@ -15,8 +15,6 @@ npm: `npm install @prostojs/parser`
 
 Via CDN:
 ```
-<script src="https://unpkg.com/@prostojs/dye"></script>
-<script src="https://unpkg.com/@prostojs/logger"></script>
 <script src="https://unpkg.com/@prostojs/tree"></script>
 <script src="https://unpkg.com/@prostojs/parser"></script>
 ```
