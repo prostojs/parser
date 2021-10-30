@@ -1,3 +1,12 @@
+## [0.2.10](https://github.com/prostojs/parser/compare/v0.2.9...v0.2.10) (2021-10-30)
+
+
+### Features
+
+* **omit:** omit and eject can be a function ([1358890](https://github.com/prostojs/parser/commit/13588901a3179f1f57017ce8767fe66bdb4cb3a8))
+
+
+
 ## [0.2.9](https://github.com/prostojs/parser/compare/v0.2.8...v0.2.9) (2021-10-30)
 
 
