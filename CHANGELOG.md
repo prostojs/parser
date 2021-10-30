@@ -1,3 +1,12 @@
+## [0.2.2](https://github.com/prostojs/parser/compare/v0.2.1...v0.2.2) (2021-10-30)
+
+
+### Bug Fixes
+
+* **onMatchToken:** call right node cb ([eacabfd](https://github.com/prostojs/parser/commit/eacabfd6605d47c311c52e1689e16a5ff7b411bb))
+
+
+
 ## [0.2.1](https://github.com/prostojs/parser/compare/v0.2.0...v0.2.1) (2021-10-30)
 
 
