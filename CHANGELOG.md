@@ -1,3 +1,12 @@
+## [0.2.3](https://github.com/prostojs/parser/compare/v0.2.2...v0.2.3) (2021-10-30)
+
+
+### Bug Fixes
+
+* **tree:** replace 'new line' ([0e4eccf](https://github.com/prostojs/parser/commit/0e4eccfbbe0af9eebab347c8c0f764eeba92273e))
+
+
+
 ## [0.2.2](https://github.com/prostojs/parser/compare/v0.2.1...v0.2.2) (2021-10-30)
 
 
