@@ -7,32 +7,36 @@ export interface TCodeFragmentOptions {
 }
 
 export function renderCodeFragment(lines: string[], options: TCodeFragmentOptions) {
-    const row = options.row || 0
+    const row = (options.row || 1) - 1
     const rowEnd = options.rowEnd || -1
-    const limit = options.limit   || 6
-    const offset = options.offset || 3
+    const limit = Math.min(options.limit || 6, lines.length)
+    const offset = Math.min(options.offset || 3, lines.length)
     const error = options.error
     let output = ''
     const delta = rowEnd - row
+    console.log({
+        lines,
+        ...options,
+    })
     if (delta > limit ) {
         let longestLine = 0
         const newLimit = Math.floor(limit / 2)
         for (let i = 0; i < newLimit + offset; i++) {
             const index = row + i - offset
             longestLine = Math.max(lines[index].length, longestLine)
-            output += renderLine(lines[index], index, index === row ? error : undefined, index === row || index === rowEnd ? 'bold' : '')
+            output += renderLine(lines[index], index + 1, index === row ? error : undefined, index === row || index === rowEnd ? 'bold' : '')
         }
         let output2 = ''
         for (let i = newLimit + offset; i > 0; i--) {
             const index = rowEnd - i + offset
             longestLine = Math.max(lines[index].length, longestLine)
-            output2 += renderLine(lines[index], index, index === row ? error : undefined, index === row || index === rowEnd ? 'bold' : '')
+            output2 += renderLine(lines[index], index + 1, index === row ? error : undefined, index === row || index === rowEnd ? 'bold' : '')
         }
         output += renderLine('—'.repeat(longestLine), '———', undefined, 'dim') + output2
     } else {
         for (let i = 0; i < limit + offset; i++) {
             const index = row + i - offset
-            output += renderLine(lines[index], index, index === row ? error : undefined, index === row || index === rowEnd ? 'bold' : '')
+            output += renderLine(lines[index], index + 1, index === row ? error : undefined, index === row || index === rowEnd ? 'bold' : '')
         }
     }
     return output           

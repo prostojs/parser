@@ -183,7 +183,7 @@ export class ProstoParserRootContext {
             console.error(banner + __DYE_RED_BRIGHT__, message, __DYE_RESET__)
             console.error(this.context.toTree())
             console.error(renderCodeFragment(this.src.split('\n'), {
-                row: row - 1,
+                row: row,
                 error: col,
             }))
         }
