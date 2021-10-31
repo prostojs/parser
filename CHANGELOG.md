@@ -1,3 +1,12 @@
+## [0.3.4](https://github.com/prostojs/parser/compare/v0.3.3...v0.3.4) (2021-10-31)
+
+
+### Bug Fixes
+
+* remove console.log ([526ea18](https://github.com/prostojs/parser/commit/526ea18c4fca1cf7bb8215b4ccdeed685af3fa35))
+
+
+
 ## [0.3.3](https://github.com/prostojs/parser/compare/v0.3.2...v0.3.3) (2021-10-31)
 
 
