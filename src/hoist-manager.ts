@@ -7,10 +7,11 @@ export class ProstoHoistManager {
     data: Record<number, HoistItems> = {}
 
     addHoistOptions(ctx: ProstoParseNodeContext) {
-        const targetNodeOptions = ctx.node.options
-        if (targetNodeOptions.hoistChildren) {
-            targetNodeOptions.hoistChildren.forEach(options => {
-                const hoist = this.data[options.id] = (this.data[options.id] || {})
+        const targetNode = ctx.node
+        if (targetNode.hoistChildren) {
+            targetNode.hoistChildren.forEach(options => {
+                const nodeId = typeof options.node === 'object' ? options.node.id : options.node
+                const hoist = this.data[nodeId] = (this.data[nodeId] || {})
                 if (hoist) {
                     hoist[ctx.index] = {
                         options,
@@ -22,10 +23,11 @@ export class ProstoHoistManager {
     }
 
     removeHoistOptions(ctx: ProstoParseNodeContext) {
-        const targetNodeOptions = ctx.node.options
-        if (targetNodeOptions.hoistChildren) {
-            targetNodeOptions.hoistChildren.forEach(options => {
-                const hoist = this.data[options.id]
+        const targetNode = ctx.node
+        if (targetNode.hoistChildren) {
+            targetNode.hoistChildren.forEach(options => {
+                const nodeId = typeof options.node === 'object' ? options.node.id : options.node
+                const hoist = this.data[nodeId]
                 if (hoist) {
                     delete hoist[ctx.index]
                 }

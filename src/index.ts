@@ -1,4 +1,8 @@
 export * from './p.types'
+export * from './node'
+export * from './node-context'
+export * from './root-context'
+export * from './console-utils'
 import { ProstoParseNode } from './node'
 import { ProstoParseNodeContext } from './node-context'
 import { TProstoParserOptions } from './p.types'
@@ -7,8 +11,6 @@ export class ProstoParser {
     protected readonly nodes: Record<number, ProstoParseNode> = {} as Record<number, ProstoParseNode>
 
     protected readonly rootNode: ProstoParseNode
-
-    protected groups: Record<string, ProstoParseNode[]> = {}
 
     constructor(protected options: TProstoParserOptions) {
         options.nodes.forEach(node => {

@@ -1,4 +1,5 @@
 import { TParseMatchResult, TPorstoParserCallbackData, TPorstoParserCallbackDataMatched } from '.'
+import { renderCodeFragment } from './console-utils'
 import { ProstoHoistManager } from './hoist-manager'
 import { ProstoParseNode } from './node'
 import { ProstoParseNodeContext } from './node-context'
@@ -50,8 +51,8 @@ export class ProstoParserRootContext {
                 rg: [''],
                 matched: false,
             }
-            for (let i = 0; i < this.node.options.recognizes.length; i++) {
-                const id = this.node.options.recognizes[i]
+            for (let i = 0; i < this.node.recognizes.length; i++) {
+                const id = this.node.recognizes[i]
                 const recognizeNode = this.getNode(id)
                 if (!recognizeNode) {
                     this.panic(`Node [${ id }] required by the node "${ this.node.name }" not found.`)
@@ -104,7 +105,7 @@ export class ProstoParserRootContext {
         }
 
         if (this.context !== this.root) {
-            this.panic(`Unexpected end of the source string while parsing "${ this.context.node.name }" (${ this.context.index }) node.\n${ JSON.stringify(this.context.content) }`)
+            this.panic(`Unexpected end of the source string while parsing "${ this.context.node.name }" (${ this.context.index }) node.`)
         }
 
         return this.root
@@ -166,8 +167,25 @@ export class ProstoParserRootContext {
         }
     }
 
-    panic(message: string) {
-        console.error(banner + __DYE_RED_BRIGHT__, message, __DYE_RESET__)
+    getPosition(offset = 0) {
+        const past = this.src.slice(0, this.pos + offset).split('\n')
+        const row = past.length
+        const col = past.pop()?.length || 0
+        return {
+            row, col, pos: this.pos,
+        }
+    }
+
+    panic(message: string, errorBackOffset = 0) {
+        if (this.pos > 0) {
+            const { row, col } = this.getPosition(-errorBackOffset)
+            console.error(banner + __DYE_RED_BRIGHT__, message, __DYE_RESET__)
+            console.error(this.context.toTree())
+            console.error(renderCodeFragment(this.src.split('\n'), {
+                row: row - 1,
+                error: col,
+            }))
+        }
         throw new Error(message)
     }
 }

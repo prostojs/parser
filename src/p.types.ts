@@ -3,7 +3,7 @@ import { ProstoParseNodeContext } from './node-context'
 import { ProstoParserRootContext } from './root-context'
 
 export interface TProstoParserHoistOptions {
-    id: number,
+    node: number | ProstoParseNode,
     as: string,
     asArray?: boolean,
     deep?: number | boolean
@@ -12,26 +12,28 @@ export interface TProstoParserHoistOptions {
 }
 
 export interface TProstoParseNode {
-    id: number
+    id?: number
     label?: string
     icon?: string
     startsWith?: TProstoParserTokenDescripor
     endsWith?: TProstoParserTokenDescripor
-    popsAfterNode?: number | number[]
+    popsAfterNode?: number | ProstoParseNode | (number | ProstoParseNode)[]
     popsAtEOFSource?: boolean
     mergeWith?: TPorstoParseNodeMergeOptions[]
+    goodToken?: string | string[] | RegExp,
+    badToken?: string | string[] | RegExp,
     skipToken?: string | string[] | RegExp,
-    recognizes: number[]
+    recognizes?: (number | ProstoParseNode )[]
     hoistChildren?: TProstoParserHoistOptions[]
     mapContent?: { [key: string]: (content: ProstoParseNodeContext['content']) => unknown }
-    constraits?: TProstoParserNodeConstraits
+    // constraits?: TProstoParserNodeConstraits
     onPop?: (data: TPorstoParserCallbackData) => void
     onMatch?: (data: TPorstoParserCallbackDataMatched) => void
     onAppendContent?: (s: string | ProstoParseNodeContext['content'], data: TPorstoParserCallbackData) => string | ProstoParseNodeContext['content']
 }
 
 export interface TPorstoParseNodeMergeOptions {
-    parent: number | number[] | '*'
+    parent: ProstoParseNode | number | (number | ProstoParseNode)[] | '*'
     join?: boolean
 }
 
@@ -41,7 +43,7 @@ export interface TProstoParserTokenDescripor {
     eject?: boolean
     negativeLookBehind?: RegExp
     negativeLookAhead?: RegExp
-    onMatchToken?: (data: TPorstoParserCallbackDataMatched) => boolean | { omit?: boolean, eject: boolean } | undefined
+    onMatchToken?: (data: TPorstoParserCallbackDataMatched) => boolean | { omit?: boolean, eject: boolean } | void
 }
 
 export interface TPorstoParserCallbackDataMatched extends TPorstoParserCallbackData {
