@@ -13,7 +13,7 @@ export class ProstoParseNode<T = any> {
     
     public mergeWith: TPorstoParseNodeMergeOptions[]
 
-    public hoistChildren: TProstoParserHoistOptions[]
+    public hoistChildren: TProstoParserHoistOptions<T>[]
 
     constructor(public readonly options: TProstoParseNode<T>) {
         this.id = options.id || idCounter++
@@ -59,7 +59,7 @@ export class ProstoParseNode<T = any> {
         this.mergeWith.push(...args)
     }
 
-    public addHoistChildren(...args: TProstoParserHoistOptions[]) {
+    public addHoistChildren(...args: TProstoParserHoistOptions<T>[]) {
         this.hoistChildren.push(...args)
     }
 

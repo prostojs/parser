@@ -2,9 +2,9 @@ import { ProstoParseNode } from './node'
 import { ProstoParseNodeContext } from './node-context'
 import { ProstoParserRootContext } from './root-context'
 
-export interface TProstoParserHoistOptions {
+export interface TProstoParserHoistOptions<T = any> {
     node: number | ProstoParseNode,
-    as: string,
+    as: keyof T,
     asArray?: boolean,
     deep?: number | boolean
     removeFromContent?: boolean
@@ -24,7 +24,7 @@ export interface TProstoParseNode<T = any> {
     badToken?: string | string[] | RegExp,
     skipToken?: string | string[] | RegExp,
     recognizes?: (number | ProstoParseNode )[]
-    hoistChildren?: TProstoParserHoistOptions[]
+    hoistChildren?: TProstoParserHoistOptions<T>[]
     mapContent?: { [key: string]: (content: ProstoParseNodeContext['content']) => unknown }
     // constraits?: TProstoParserNodeConstraits
     onPop?: (data: TPorstoParserCallbackData<T>) => void
