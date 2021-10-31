@@ -11,12 +11,12 @@ export interface TProstoParserHoistOptions {
     map?: (ctx: ProstoParseNodeContext) => unknown
 }
 
-export interface TProstoParseNode<T = Record<string, unknown>> {
+export interface TProstoParseNode<T = any> {
     id?: number
     label?: string
     icon?: string
-    startsWith?: TProstoParserTokenDescripor
-    endsWith?: TProstoParserTokenDescripor
+    startsWith?: TProstoParserTokenDescripor<T>
+    endsWith?: TProstoParserTokenDescripor<T>
     popsAfterNode?: number | ProstoParseNode | (number | ProstoParseNode)[]
     popsAtEOFSource?: boolean
     mergeWith?: TPorstoParseNodeMergeOptions[]
@@ -37,20 +37,20 @@ export interface TPorstoParseNodeMergeOptions {
     join?: boolean
 }
 
-export interface TProstoParserTokenDescripor {
+export interface TProstoParserTokenDescripor<T = any> {
     token: string | string[] | RegExp
     omit?: boolean
     eject?: boolean
     negativeLookBehind?: RegExp
     negativeLookAhead?: RegExp
-    onMatchToken?: (data: TPorstoParserCallbackDataMatched) => boolean | { omit?: boolean, eject: boolean } | void
+    onMatchToken?: (data: TPorstoParserCallbackDataMatched<T>) => boolean | { omit?: boolean, eject: boolean } | void
 }
 
-export interface TPorstoParserCallbackDataMatched<T = Record<string, unknown>> extends TPorstoParserCallbackData<T> {
+export interface TPorstoParserCallbackDataMatched<T = any> extends TPorstoParserCallbackData<T> {
     matched: RegExpMatchArray | [string]
 }
 
-export interface TPorstoParserCallbackData<T = Record<string, unknown>> {
+export interface TPorstoParserCallbackData<T = any> {
     rootContext: ProstoParserRootContext
     context: ProstoParseNodeContext
     customData: T

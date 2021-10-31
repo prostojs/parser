@@ -4,7 +4,7 @@ import { ProstoParserRootContext } from './root-context'
 
 let idCounter = 10000
 
-export class ProstoParseNode<T = Record<string, unknown>> {
+export class ProstoParseNode<T = any> {
     public readonly id: number
     
     public recognizes: number[]

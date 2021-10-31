@@ -17,6 +17,7 @@ export class ProstoParser {
             if (this.nodes[node.id]) {
                 throw new Error(`[parser] Duplicate Node "${ node.name }". Check Parser Options -> nodes.`)
             }
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             this.nodes[node.id] = node
         })
         if (!this.getNode(this.options.rootNode.id)) this.nodes[this.options.rootNode.id] = this.options.rootNode
