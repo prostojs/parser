@@ -4,7 +4,7 @@ import { ProstoParserRootContext } from './root-context'
 
 let idCounter = 10000
 
-export class ProstoParseNode<ContextCustomType extends Record<string | number, unknown> = Record<string | number, unknown>> {
+export class ProstoParseNode<T = Record<string, unknown>> {
     public readonly id: number
     
     public recognizes: number[]
@@ -15,7 +15,7 @@ export class ProstoParseNode<ContextCustomType extends Record<string | number, u
 
     public hoistChildren: TProstoParserHoistOptions[]
 
-    constructor(public readonly options: TProstoParseNode) {
+    constructor(public readonly options: TProstoParseNode<T>) {
         this.id = options.id || idCounter++
         this.recognizes = options.recognizes?.map(item => typeof item === 'object' ? item.id : item) || []
         this.popsAfter = [options.popsAfterNode || []].flat().map(item => typeof item === 'object' ? item.id : item)
@@ -23,8 +23,8 @@ export class ProstoParseNode<ContextCustomType extends Record<string | number, u
         this.hoistChildren = options.hoistChildren || []
     }
 
-    public createContext(index: number, level: number, rootContext?: ProstoParserRootContext): ProstoParseNodeContext<ContextCustomType> {
-        return new ProstoParseNodeContext<ContextCustomType>(this, index, level, rootContext)
+    public createContext(index: number, level: number, rootContext?: ProstoParserRootContext): ProstoParseNodeContext {
+        return new ProstoParseNodeContext(this as unknown as ProstoParseNode, index, level, rootContext)
     }
 
     public get name() {

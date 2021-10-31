@@ -159,11 +159,12 @@ export class ProstoParserRootContext {
         return this.pos
     }
 
-    getCallbackData(matched?: RegExpMatchArray): TPorstoParserCallbackData | TPorstoParserCallbackDataMatched {
+    getCallbackData<T = Record<string, unknown>>(matched?: RegExpMatchArray): TPorstoParserCallbackData<T> | TPorstoParserCallbackDataMatched<T> {
         return {
             rootContext: this,
             context: this.context,
             matched,
+            customData: this.context.getCustomData<T>(),
         }
     }
 

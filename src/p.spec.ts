@@ -142,7 +142,12 @@ describe('ProstoParser', () => {
             'wbr',
         ]
 
-        const tag = new ProstoParseNode({
+        interface TTagData {
+            tag: string,
+            endtag: string | null,
+        }
+
+        const tag = new ProstoParseNode<TTagData>({
             id: ENode.TAG,
             label: '',
             startsWith: {
@@ -151,50 +156,50 @@ describe('ProstoParser', () => {
                 omit: true,
             },
             icon: '<>',
-            onMatch({ matched, context }) {
-                context.customContent.tag = matched[1]
+            onMatch({ matched, context, customData }) {
+                customData.tag = matched[1]
                 context.icon = matched[1]
             },
             endsWith: {
                 token: /^(?:\/\>|\<\/\s*(\w+)\s*\>)/,
                 omit: true,
-                onMatchToken: ({ context, matched }) => {
-                    context.customContent.endtag = matched ? matched[1] : null
+                onMatchToken: ({ context, matched, customData }) => {
+                    customData.endtag = matched ? matched[1] : null
                     return true
                 },
             },
             skipToken: /^\s+/,
             badToken: /./,
-            onPop({ context, rootContext }) {
+            onPop({ customData, rootContext, context }) {
                 if (
-                    typeof context.customContent.endtag === 'string' &&
-                    context.customContent.tag !== context.customContent.endtag
+                    typeof customData.endtag === 'string' &&
+                    customData.tag !== customData.endtag
                 ) {
                     rootContext.panic(
-                        `Open tag <${context.customContent.tag as string}> and closing tag </${context.customContent.endtag}> must be equal.`,
-                        context.customContent.endtag.length + 1,
+                        `Open tag <${ customData.tag }> and closing tag </${ customData.endtag || '' }> must be equal.`,
+                        customData.endtag.length + 1,
                     )
                 }
-                context.icon = '<' + (context.customContent.tag as string) + '>'
+                context.icon = '<' + customData.tag + '>'
             },
             recognizes: [ENode.INNER, ENode.ATTRIBUTE],
         })
-        const voidTag = new ProstoParseNode({
+        const voidTag = new ProstoParseNode<TTagData>({
             id: ENode.VOID_TAG,
             label: '',
             startsWith: {
                 token: new RegExp('^<(' + htmlVoidTags.join('|') + ')[\\s\\>]'),
                 omit: true,
             },
-            onMatch(data) {
-                data.context.customContent.tag = (data.matched || [])[1]
+            onMatch({ matched, customData }) {
+                customData.tag = (matched || [])[1]
             },
             endsWith: {
                 token: /^\/?\>/,
                 omit: true,
             },
-            onPop({ context }) {
-                context.icon = '<' + (context.customContent.tag as string) + '>'
+            onPop({ context, customData }) {
+                context.icon = '<' + customData.tag + '>'
             },
             skipToken: /^\s+/,
             mapContent: {},
@@ -250,7 +255,7 @@ describe('ProstoParser', () => {
                         key: (content) => content.shift(),
                     },
                     onPop({ context }) {
-                        context.label = (context.customContent.key as string)
+                        context.label = (context.getCustomData().key as string)
                     },
                     popsAfterNode: [ENode.VALUE],
                     recognizes: [ENode.VALUE],
@@ -263,7 +268,7 @@ describe('ProstoParser', () => {
                         omit: true,
                     },
                     onMatch({ matched, context }) {
-                        context.customContent.quote = (matched && matched[0] || '')[1]
+                        context.getCustomData().quote = (matched && matched[0] || '')[1]
                     },
                     endsWith: {
                         token: ['"', '\''],
@@ -271,7 +276,7 @@ describe('ProstoParser', () => {
                         negativeLookBehind: negativeLookBehindEscapingSlash,
                         onMatchToken({ matched, context }) {
                             const quote = matched && matched[0] || ''
-                            return quote === context.customContent.quote
+                            return quote === context.getCustomData().quote
                         },
                     },
                     recognizes: [],

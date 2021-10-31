@@ -42,13 +42,13 @@ export class ProstoHoistManager {
             Object.keys(hoist).map(i => hoist[i as unknown as number]).forEach(({ options, context }) => {
                 if (options.deep === true || Number(options.deep) >= (ctx.level - context.level)) {
                     if (options.asArray) {
-                        const hoisted = context.customContent[options.as] = (context.customContent[options.as] || []) as unknown[]
+                        const hoisted = context.getCustomData()[options.as] = (context.getCustomData()[options.as] || []) as unknown[]
                         hoisted.push(options.map ? options.map(ctx) : ctx)
                     } else {
-                        if (context.customContent[options.as]) {
+                        if (context.getCustomData()[options.as]) {
                             throw new Error(`Can not hoist multiple "${ ctx.node.name }" to "${ context.node.name }" as "${ options.as }". "${ options.as }" already exists.`)
                         } else {
-                            context.customContent[options.as] = options.map ? options.map(ctx) : ctx
+                            context.getCustomData()[options.as] = options.map ? options.map(ctx) : ctx
                         }
                     }
                     if (options.removeFromContent) {

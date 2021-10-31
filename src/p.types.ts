@@ -11,7 +11,7 @@ export interface TProstoParserHoistOptions {
     map?: (ctx: ProstoParseNodeContext) => unknown
 }
 
-export interface TProstoParseNode {
+export interface TProstoParseNode<T = Record<string, unknown>> {
     id?: number
     label?: string
     icon?: string
@@ -27,9 +27,9 @@ export interface TProstoParseNode {
     hoistChildren?: TProstoParserHoistOptions[]
     mapContent?: { [key: string]: (content: ProstoParseNodeContext['content']) => unknown }
     // constraits?: TProstoParserNodeConstraits
-    onPop?: (data: TPorstoParserCallbackData) => void
-    onMatch?: (data: TPorstoParserCallbackDataMatched) => void
-    onAppendContent?: (s: string | ProstoParseNodeContext['content'], data: TPorstoParserCallbackData) => string | ProstoParseNodeContext['content']
+    onPop?: (data: TPorstoParserCallbackData<T>) => void
+    onMatch?: (data: TPorstoParserCallbackDataMatched<T>) => void
+    onAppendContent?: (s: string | ProstoParseNodeContext['content'], data: TPorstoParserCallbackData<T>) => string | ProstoParseNodeContext['content']
 }
 
 export interface TPorstoParseNodeMergeOptions {
@@ -46,13 +46,14 @@ export interface TProstoParserTokenDescripor {
     onMatchToken?: (data: TPorstoParserCallbackDataMatched) => boolean | { omit?: boolean, eject: boolean } | void
 }
 
-export interface TPorstoParserCallbackDataMatched extends TPorstoParserCallbackData {
+export interface TPorstoParserCallbackDataMatched<T = Record<string, unknown>> extends TPorstoParserCallbackData<T> {
     matched: RegExpMatchArray | [string]
 }
 
-export interface TPorstoParserCallbackData {
-    rootContext: ProstoParserRootContext,
-    context: ProstoParseNodeContext,
+export interface TPorstoParserCallbackData<T = Record<string, unknown>> {
+    rootContext: ProstoParserRootContext
+    context: ProstoParseNodeContext
+    customData: T
 }
 
 export interface TProstoParserNodeConstraits {
@@ -60,8 +61,8 @@ export interface TProstoParserNodeConstraits {
 }
 
 export interface TProstoParserOptions {
-    nodes: ProstoParseNode[]
-    rootNode: ProstoParseNode
+    nodes: ProstoParseNode<any>[]
+    rootNode: ProstoParseNode<any>
 }
 
 export interface TParseMatchResult {

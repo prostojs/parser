@@ -2,10 +2,10 @@ import { ProstoParseNode } from './node'
 import { ProstoParserRootContext } from './root-context'
 import { parserTree } from './tree'
 
-export class ProstoParseNodeContext<ContextCustomType extends Record<string, unknown> = Record<string, unknown>> {
+export class ProstoParseNodeContext {
     public content: (string | ProstoParseNodeContext | 0)[] = []
 
-    public customContent: ContextCustomType = {} as ContextCustomType
+    protected readonly _customData: Record<string, unknown> = {}
 
     public label: string
 
@@ -23,6 +23,10 @@ export class ProstoParseNodeContext<ContextCustomType extends Record<string, unk
         this.rootContext = rootContext || new ProstoParserRootContext(this)
         this.startPos = this.rootContext.getPosition()
         this.endPos = this.rootContext.getPosition()
+    }
+
+    public getCustomData<T = Record<string, unknown>>() {
+        return this._customData as unknown as T
     }
 
     public get nodeId() {
@@ -126,7 +130,7 @@ export class ProstoParseNodeContext<ContextCustomType extends Record<string, unk
         if (targetNodeOptions.mapContent) {
             Object.keys(targetNodeOptions.mapContent).forEach((key: string) => {
                 if (targetNodeOptions.mapContent && targetNodeOptions.mapContent[key]) {
-                    ;(this.customContent as Record<string, unknown>)[key] = targetNodeOptions.mapContent[key](this.content)
+                    this._customData[key] = targetNodeOptions.mapContent[key](this.content)
                 }
             })
         }

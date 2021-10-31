@@ -17,8 +17,9 @@ export const parserTree: ProstoTree<ProstoParseNodeContext | string | 0> = new P
             return styles.text('«' + context.replace(/\n/g, '\\n') + '»')
         } else if (typeof context === 'object' && context instanceof ProstoParseNodeContext) {
             let keys = ''
-            Object.keys(context.customContent).forEach(key => {
-                const val = context.customContent[key]
+            const data = context.getCustomData()
+            Object.keys(data).forEach(key => {
+                const val = data[key]
                 if (typeof val === 'string' || typeof val === 'number') {
                     keys += ' ' + styles.valuesDim(key + '(') + styles.values(val.toString()) + styles.valuesDim(')')
                 } else if (Array.isArray(val)) {
