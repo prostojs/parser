@@ -1,79 +1,70 @@
-export type TGenericNodeIdType = string | number
+import { ProstoParseNode } from './node'
+import { ProstoParseNodeContext } from './node-context'
+import { ProstoParserRootContext } from './root-context'
 
-export interface TProstoParserHoistOptions<IdType extends TGenericNodeIdType = TGenericNodeIdType> {
-    id: IdType,
+export interface TProstoParserHoistOptions {
+    id: number,
     as: string,
     asArray?: boolean,
     deep?: number | boolean
     removeFromContent?: boolean
-    map?: (ctx: TProstoParserContext<IdType>) => unknown
+    map?: (ctx: ProstoParseNodeContext) => unknown
 }
 
-export interface TProstoParseNode<IdType extends TGenericNodeIdType = TGenericNodeIdType> {
-    id: IdType
+export interface TProstoParseNode {
+    id: number
     label?: string
     icon?: string
-    startsWith?: TProstoParserTokenDescripor<IdType>
-    endsWith?: TProstoParserTokenDescripor<IdType>
-    popsAfterNode?: IdType | IdType[]
+    startsWith?: TProstoParserTokenDescripor
+    endsWith?: TProstoParserTokenDescripor
+    popsAfterNode?: number | number[]
     popsAtEOFSource?: boolean
-    mergeWith?: TPorstoParseNodeMergeOptions<IdType>[]
+    mergeWith?: TPorstoParseNodeMergeOptions[]
     skipToken?: string | string[] | RegExp,
-    recognizes: IdType[]
-    hoistChildren?: TProstoParserHoistOptions<IdType>[]
-    mapContent?: { [key: string]: (content: TProstoParserContext<IdType>['_content']) => unknown }
+    recognizes: number[]
+    hoistChildren?: TProstoParserHoistOptions[]
+    mapContent?: { [key: string]: (content: ProstoParseNodeContext['content']) => unknown }
     constraits?: TProstoParserNodeConstraits
-    onPop?: (data: TPorstoParserCallbackData<IdType>) => void
-    onMatch?: (data: TPorstoParserCallbackData<IdType>) => void
-    onAppendContent?: (s: string | TProstoParserContext['_content'], data: TPorstoParserCallbackData<IdType>) => string | TProstoParserContext['_content']
+    onPop?: (data: TPorstoParserCallbackData) => void
+    onMatch?: (data: TPorstoParserCallbackDataMatched) => void
+    onAppendContent?: (s: string | ProstoParseNodeContext['content'], data: TPorstoParserCallbackData) => string | ProstoParseNodeContext['content']
 }
 
-export interface TPorstoParseNodeMergeOptions<IdType extends TGenericNodeIdType = TGenericNodeIdType> {
-    parent: IdType | IdType[] | '*'
+export interface TPorstoParseNodeMergeOptions {
+    parent: number | number[] | '*'
     join?: boolean
 }
 
-export interface TProstoParserTokenDescripor<IdType extends TGenericNodeIdType = TGenericNodeIdType> {
+export interface TProstoParserTokenDescripor {
     token: string | string[] | RegExp
-    omit?: boolean | ((data: TPorstoParserCallbackData<IdType>) => boolean)
-    eject?: boolean | ((data: TPorstoParserCallbackData<IdType>) => boolean)
+    omit?: boolean
+    eject?: boolean
     negativeLookBehind?: RegExp
     negativeLookAhead?: RegExp
-    onMatchToken?: (data: TPorstoParserCallbackData<IdType>) => boolean
+    onMatchToken?: (data: TPorstoParserCallbackDataMatched) => boolean | { omit?: boolean, eject: boolean } | undefined
 }
 
-export interface TPorstoParserCallbackData<IdType extends TGenericNodeIdType = TGenericNodeIdType> {
-    context: TProstoParserContext<IdType>
-    matched?: RegExpMatchArray,
-    stack: TProstoParserContext<IdType>[]
-    parent?: TProstoParseNode<IdType>
-    pos: number
-    src: string
-    behind: string
-    here: string
-    error: (s: string) => void
-    jump: (n?: number) => number
-    appendContent: (s: string | TProstoParserContext['_content'], ctx?: TProstoParserContext<IdType>) => void
-    pop: () => void
-    push: (newContext: TProstoParserContext<IdType>) => void
+export interface TPorstoParserCallbackDataMatched extends TPorstoParserCallbackData {
+    matched: RegExpMatchArray | [string]
 }
 
-export interface TProstoParserContext<IdType extends TGenericNodeIdType = TGenericNodeIdType> {
-    _index: number
-    _level: number
-    _nodeId: IdType
-    _label: string
-    _icon?: string
-    _content: (string | TProstoParserContext | 0)[]
-    toTree: (colored?: boolean) => string
-    [key: string]: IdType | (string | TProstoParserContext | 0)[] | string | number | TProstoParserContext<IdType> | unknown
+export interface TPorstoParserCallbackData {
+    rootContext: ProstoParserRootContext,
+    context: ProstoParseNodeContext,
 }
 
 export interface TProstoParserNodeConstraits {
 
 }
 
-export interface TProstoParserOptions<IdType extends TGenericNodeIdType = TGenericNodeIdType> {
-    nodes: TProstoParseNode<IdType>[]
-    rootNode: IdType
+export interface TProstoParserOptions {
+    nodes: ProstoParseNode[]
+    rootNode: ProstoParseNode
+}
+
+export interface TParseMatchResult {
+    rg: RegExpMatchArray | [string]
+    matched: boolean
+    omit?: boolean
+    eject?: boolean
 }
