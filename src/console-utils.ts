@@ -14,10 +14,6 @@ export function renderCodeFragment(lines: string[], options: TCodeFragmentOption
     const error = options.error
     let output = ''
     const delta = rowEnd - row
-    console.log({
-        lines,
-        ...options,
-    })
     if (delta > limit ) {
         let longestLine = 0
         const newLimit = Math.floor(limit / 2)
@@ -36,7 +32,9 @@ export function renderCodeFragment(lines: string[], options: TCodeFragmentOption
     } else {
         for (let i = 0; i < limit + offset; i++) {
             const index = row + i - offset
-            output += renderLine(lines[index], index + 1, index === row ? error : undefined, index === row || index === rowEnd ? 'bold' : '')
+            if (index <= lines.length + 1) {
+                output += renderLine(lines[index], index + 1, index === row ? error : undefined, index === row || index === rowEnd ? 'bold' : '')
+            }
         }
     }
     return output           
