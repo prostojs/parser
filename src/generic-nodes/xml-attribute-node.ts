@@ -20,18 +20,18 @@ export class GenericXmlAttributeNode<T extends TAttributeCustomData> extends Pro
             icon: '=',
             startsWith: {
                 token: options?.prefix
-                    ? new RegExp('^' + escapeRegex(options?.prefix) + '([^=\\s"\'`\\>]+)')
-                    : /^([:a-zA-Z0-9\.\-\_\@\#\$\&\*]+)/,
+                    ? new RegExp('^' + escapeRegex(options?.prefix) + '([\\w:\\-\\.]+)')
+                    : /^([\w:\-\.]+)/,
                 omit: true,    
             },
             endsWith: {
                 token: /^[\s\n\/>]/,
                 eject: true,
             },
-            onMatch({ context, customData, matched }) {
+            onMatch({ customData, matched }) {
                 customData.key = matched[1]
             },
-            badToken: /^["'`\s]/i,
+            goodToken: /^[\w:\-\.]/i,
             hoistChildren: options?.valueNode ? [
                 {
                     node: options?.valueNode,

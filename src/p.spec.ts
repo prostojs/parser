@@ -121,16 +121,22 @@ describe('ProstoParser', () => {
             block: true,
             delimiters: ['<!--', '-->'],
         })
+        const cDataNode = new GenericCommentNode({
+            block: true,
+            delimiters: ['<![CDATA[', ']]>'],
+            options: { label: '', icon: '<![CDATA[' },
+        })
         const innerNode = new GenericXmlInnerNode()
         const tagNode = new GenericXmlTagNode({ innerNode })
-        const valueNode = new GenericXmlAttributeValue()
+        const valueNode = new GenericXmlAttributeValue(true)
         const attrNode = new GenericXmlAttributeNode({ valueNode })
         const stringNode = new GenericStringNode()
         const expression = new GenericStringExpressionNode(stringNode)
         
         rootNode.addRecognizableNode(docTypeNode, commentNode, tagNode, expression)
-        innerNode.addRecognizableNode(commentNode, tagNode, expression)
+        innerNode.addRecognizableNode(commentNode, cDataNode, tagNode, expression)
         tagNode.addRecognizableNode(innerNode, attrNode)
+        cDataNode.addRecognizableNode(expression)
 
         const parser = new ProstoParser(rootNode)
 
@@ -151,7 +157,7 @@ describe('ProstoParser', () => {
             <span v-if="condition" :class=""> condition 1 </span>
             <span v-else-if="a === 5"> condition 2 </span>
             <span v-else> condition 3 </span>
-            <div unquoted=value />
+            <div unquoted=value><![CDATA[This text <div /> {{ a + 'b' }} </> contains a CEND ]]]]><![CDATA[>]]></div>
             <div 
                 dense="ab\\"de"
                 :data-id="d.id"
@@ -235,10 +241,16 @@ describe('ProstoParser', () => {
       │     │  └─ ◦ inner
       │     │     └─ « condition 3 »
       │     ├─ «\\\\n            »
-      │     ├─ div tag(div)
+      │     ├─ div tag(div) endTag(div)
       │     │  ├─ « »
       │     │  ├─ = attribute key(unquoted) value(value)
-      │     │  └─ « »
+      │     │  └─ ◦ inner
+      │     │     ├─ <![CDATA[
+      │     │     │  ├─ «This text <div /> »
+      │     │     │  ├─ ≈ string expression( a + 'b' )
+      │     │     │  └─ « </> contains a CEND ]]»
+      │     │     └─ <![CDATA[
+      │     │        └─ «>»
       │     ├─ «\\\\n            »
       │     ├─ div tag(div) endTag(div)
       │     │  ├─ « \\\\n                »

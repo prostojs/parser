@@ -40,7 +40,7 @@ const voidEnd: TProstoParserTokenDescripor<unknown> = {
 export class GenericXmlTagNode<T extends TTagCustomData> extends ProstoParserNode<T> {
     constructor(options: TGenericXmlTagOptions) {
         const voidTags = options?.voidTags || htmlVoidTags
-        let token: string | RegExp = /^<([^\s\>\/]+)/
+        let token: string | RegExp = /^<([\w:\-\.]+)/
         if (options?.tag) {
             token = `^<(${ escapeRegex(options.tag) })`
         }
@@ -62,12 +62,19 @@ export class GenericXmlTagNode<T extends TTagCustomData> extends ProstoParserNod
                 }
             },
             endsWith: {
-                token: /^(?:\/\>|\<\/(\w+)\s*\>)/,
+                token: /^(?:\/\>|\<\/([\w:\-\.]+)\s*\>)/,
                 omit: true,
                 onMatchToken: ({ matched, customData }) => {
                     customData.endTag = matched[1]
                     return true
                 },
+            },
+            onAfterChildParse(childContext, { context }) {
+                if (childContext.node === options.innerNode) {
+                    // after inner we ain't going to have anything
+                    // to parse in this node
+                    context.getOptions().recognizes = []
+                }
             },
             // skipToken: /^\s+/,
             badToken: /[^\s]/,

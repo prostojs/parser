@@ -61,8 +61,7 @@ export class ProstoParserRootContext {
             if (matchResult.matched && matchedChild) {
                 let toAppend = ''
                 if (matchResult.eject) {
-                    this.context.appendContent(matchedToken)
-                    this.jump(matchedToken.length)
+                    this.jump(this.context.appendContent(matchedToken))
                 } else if (matchResult.omit) {
                     this.jump(matchedToken.length)
                 } else {
@@ -82,14 +81,12 @@ export class ProstoParserRootContext {
                     this.jump(matchedToken.length)
                     this.pop()
                 } else {
-                    this.context.appendContent(matchedToken)
-                    this.jump(matchedToken.length)
+                    this.jump(this.context.appendContent(matchedToken))
                     this.pop()
                 }
                 continue
             }
-            this.context.appendContent(src[this.pos])
-            this.jump()
+            this.jump(this.context.appendContent(src[this.pos]))
         }
 
         if (this.context !== this.root) {
@@ -107,7 +104,7 @@ export class ProstoParserRootContext {
         const parentContext = this.stack.pop()
         this.context.onPop()
         if (parentContext) {
-            this.context.mergeIfRequired(parentContext)
+            this.context.appendOrMergeTo(parentContext)
             parentContext.afterChildParse(this.context)
             this.context.cleanup()
             const node = this.context.node

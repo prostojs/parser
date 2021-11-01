@@ -63,8 +63,9 @@ export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
         }
     }
 
-    appendContent(input: string | ProstoParserNodeContext['content']) {
+    appendContent(input: string | ProstoParserNodeContext['content']): number {
         let s = input
+        let jumpLen = 1
         this.endPos = this.rootContext.getPosition()
         if (typeof s === 'string') {
             const matched = this.skipMatches('', s)
@@ -73,9 +74,11 @@ export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
             } else if (this.badMatches('', s) || !this.goodMatches('', s)) {
                 this.rootContext.panic(`The token "${ s.replace(/"/g, '\\"') }" is not allowed in "${ this.node.name }".`)
             }
+            jumpLen = s.length
         }
         if (this.options.onAppendContent) {
             s = this.options.onAppendContent(input, this.rootContext.getCallbackData())
+            jumpLen = typeof s === 'string' ? s.length : jumpLen
         }
         const len = this.content.length
         const contentLast = this.content[len - 1]
@@ -85,7 +88,7 @@ export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
             } else {
                 this.content.push(...s)
             }
-            return
+            return jumpLen
         } else if (contentLast === 0) {
             this.content = this.content.slice(0, len - 1)
         }
@@ -94,6 +97,7 @@ export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
         } else {
             this.content.push(...s)
         }
+        return jumpLen
     }
 
     onPop() {
@@ -114,7 +118,7 @@ export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
         return this.options.popsAfterNode || []
     }
 
-    mergeIfRequired(parentContext: ProstoParserNodeContext) {
+    appendOrMergeTo(parentContext: ProstoParserNodeContext) {
         if (parentContext && this.options.mergeWith) {
             const parentNode = parentContext.node
             for (let i = 0; i < this.options.mergeWith.length; i++) {

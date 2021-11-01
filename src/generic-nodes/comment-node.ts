@@ -24,6 +24,17 @@ export class GenericCommentNode extends ProstoParserNode {
                 token: '\n',
                 omit: true,
             },
+            onAppendContent(s, { context, rootContext }) {
+                const options = context.getOptions()
+                if (typeof s === 'string' && !options.recognizes.length) {
+                    // jump to the end
+                    const end = typeof options.endsWith?.token === 'string' ? rootContext.here.indexOf(options.endsWith.token) : -1
+                    if (end >= 0) {
+                        return rootContext.here.slice(0, end)
+                    }
+                }
+                return s
+            },
             ...options,
         })
     }
