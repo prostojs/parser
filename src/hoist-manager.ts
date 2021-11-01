@@ -1,15 +1,15 @@
 import { TProstoParserHoistOptions } from '.'
-import { ProstoParseNodeContext } from './node-context'
+import { ProstoParserNodeContext } from './node-context'
 
-interface HoistItems { [contextIndex: number]: {options: TProstoParserHoistOptions, context: ProstoParseNodeContext} }
+interface HoistItems { [contextIndex: number]: {options: TProstoParserHoistOptions, context: ProstoParserNodeContext} }
 
 export class ProstoHoistManager {
     data: Record<number, HoistItems> = {}
 
-    addHoistOptions(ctx: ProstoParseNodeContext) {
-        const targetNode = ctx.node
-        if (targetNode.hoistChildren) {
-            targetNode.hoistChildren.forEach(options => {
+    addHoistOptions(ctx: ProstoParserNodeContext) {
+        const targetOptions = ctx.getOptions()
+        if (targetOptions.hoistChildren) {
+            targetOptions.hoistChildren.forEach(options => {
                 const nodeId = typeof options.node === 'object' ? options.node.id : options.node
                 const hoist = this.data[nodeId] = (this.data[nodeId] || {})
                 if (hoist) {
@@ -22,10 +22,10 @@ export class ProstoHoistManager {
         }
     }
 
-    removeHoistOptions(ctx: ProstoParseNodeContext) {
-        const targetNode = ctx.node
-        if (targetNode.hoistChildren) {
-            targetNode.hoistChildren.forEach(options => {
+    removeHoistOptions(ctx: ProstoParserNodeContext) {
+        const targetOptions = ctx.getOptions()
+        if (targetOptions.hoistChildren) {
+            targetOptions.hoistChildren.forEach(options => {
                 const nodeId = typeof options.node === 'object' ? options.node.id : options.node
                 const hoist = this.data[nodeId]
                 if (hoist) {
@@ -35,20 +35,21 @@ export class ProstoHoistManager {
         }
     }
 
-    processHoistOptions(ctx: ProstoParseNodeContext) {
+    processHoistOptions(ctx: ProstoParserNodeContext) {
         const id = ctx.node.id
         const hoist = this.data[id]
         if (hoist) {
             Object.keys(hoist).map(i => hoist[i as unknown as number]).forEach(({ options, context }) => {
+                const customData = context.getCustomData<Record<string, unknown>>()
                 if (options.deep === true || Number(options.deep) >= (ctx.level - context.level)) {
                     if (options.asArray) {
-                        const hoisted = context.getCustomData()[options.as as string] = (context.getCustomData()[options.as as string] || []) as unknown[]
+                        const hoisted = customData[options.as as string] = (customData[options.as as string] || []) as unknown[]
                         hoisted.push(options.map ? options.map(ctx) : ctx)
                     } else {
-                        if (context.getCustomData()[options.as as string]) {
+                        if (customData[options.as as string]) {
                             throw new Error(`Can not hoist multiple "${ ctx.node.name }" to "${ context.node.name }" as "${ options.as as string }". "${ options.as as string }" already exists.`)
                         } else {
-                            context.getCustomData()[options.as as string] = options.map ? options.map(ctx) : ctx
+                            customData[options.as as string] = options.map ? options.map(ctx) : ctx
                         }
                     }
                     if (options.removeFromContent) {

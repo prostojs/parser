@@ -1,62 +1,56 @@
 import { TParseMatchResult, TPorstoParserCallbackData, TPorstoParserCallbackDataMatched } from '.'
 import { renderCodeFragment } from './console-utils'
 import { ProstoHoistManager } from './hoist-manager'
-import { ProstoParseNode } from './node'
-import { ProstoParseNodeContext } from './node-context'
+import { ProstoParserNode } from './node'
+import { ProstoParserNodeContext } from './node-context'
 
 const banner = __DYE_RED__ + '[parser]' + __DYE_COLOR_OFF__
 
 export class ProstoParserRootContext {
-    protected nodes: Record<number, ProstoParseNode> = {} as Record<number, ProstoParseNode>
+    protected nodes: Record<number, ProstoParserNode> = {} as Record<number, ProstoParserNode>
 
     public pos = 0
 
     public index = 0
     
-    public context: ProstoParseNodeContext
-    
-    public node: ProstoParseNode
-    
+    public context: ProstoParserNodeContext
+        
     public behind: string = ''
     
     public here: string = ''
     
     public src: string = ''
 
-    protected readonly stack: ProstoParseNodeContext[] = []
+    protected readonly stack: ProstoParserNodeContext[] = []
 
     protected l: number = 0
     
     public readonly hoistManager = new ProstoHoistManager()
 
-    constructor(protected readonly root: ProstoParseNodeContext) {
+    constructor(protected readonly root: ProstoParserNodeContext) {
         this.context = root
-        this.node = root.node
     }
 
     getNode(id: number) {
         return this.nodes[id]
     }
 
-    public parse(nodes: Record<number, ProstoParseNode>, src: string) {
+    public parse(nodes: Record<number, ProstoParserNode>, src: string) {
         this.nodes = nodes
         this.src = src,
         this.here = src,
         this.l = src.length
 
         while (this.pos < this.l) {
-            let matchedChild: ProstoParseNode | undefined
+            let matchedChild: ProstoParserNode | undefined
             let matchedToken: string = ''
             let matchResult: TParseMatchResult = {
                 rg: [''],
                 matched: false,
             }
-            for (let i = 0; i < this.node.recognizes.length; i++) {
-                const id = this.node.recognizes[i]
-                const recognizeNode = this.getNode(id)
-                if (!recognizeNode) {
-                    this.panic(`Node [${ id }] required by the node "${ this.node.name }" not found.`)
-                }
+            const options = this.context.getOptions()
+            for (let i = 0; i < options.recognizes.length; i++) {
+                const recognizeNode = options.recognizes[i]
                 matchResult = recognizeNode.startMatches(this.behind, this.here, this.getCallbackData()) 
                 if (matchResult.matched) {
                     matchedChild = recognizeNode
@@ -72,16 +66,14 @@ export class ProstoParserRootContext {
                 } else if (matchResult.omit) {
                     this.jump(matchedToken.length)
                 } else {
-                    toAppend = src[this.pos]
-                    this.jump()
+                    toAppend = matchedToken
+                    this.jump(matchedToken.length)
                 }
                 this.pushNewContext(matchedChild, toAppend ? [toAppend] : [])
-                if (matchedChild.options.onMatch) {
-                    matchedChild.options.onMatch(this.getCallbackData(matchResult.rg) as TPorstoParserCallbackDataMatched)
-                }
+                matchedChild.onMatch(this.getCallbackData(matchResult.rg) as TPorstoParserCallbackDataMatched)
                 continue
             }
-            matchResult = this.node.endMatches(this.behind, this.here, this.getCallbackData())
+            matchResult = this.context.endMatches(this.behind, this.here, this.getCallbackData())
             if (matchResult.matched) {
                 matchedToken = matchResult.rg[0]
                 if (matchResult.eject) {
@@ -101,51 +93,42 @@ export class ProstoParserRootContext {
         }
 
         if (this.context !== this.root) {
-            while (this.node.options.popsAtEOFSource && this.stack.length > 0) this.pop()
+            while (this.context.getOptions().popsAtEOFSource && this.stack.length > 0) this.pop()
         }
 
         if (this.context !== this.root) {
-            this.panic(`Unexpected end of the source string while parsing "${ this.context.node.name }" (${ this.context.index }) node.`)
+            this.panicBlock(`Unexpected end of the source string while parsing "${ this.context.node.name }" (${ this.context.index }) node.`)
         }
 
         return this.root
     }
 
     pop() {
-        let parentContext = this.stack.pop()
+        const parentContext = this.stack.pop()
         this.context.onPop()
         if (parentContext) {
             this.context.mergeIfRequired(parentContext)
-            let popsAfter = parentContext.getPopsAfter()
-            while (!!parentContext && (popsAfter.includes(this.context.node.id))) {
-                this.context = parentContext
-                parentContext = this.stack.pop()
-                this.context.onPop()
-                if (parentContext) {    
-                    this.context.mergeIfRequired(parentContext)
-                    popsAfter = parentContext && parentContext.getPopsAfter() || []
-                }
-            }
-        }
-
-        if (parentContext) {
+            parentContext.afterChildParse(this.context)
+            this.context.cleanup()
+            const node = this.context.node
             this.context = parentContext
+            if (parentContext.getPopsAfter().includes(node)) {
+                this.pop()
+            }
         } else {
-            // end
-        }
-
-        this.node = this.context.node      
+            this.context.cleanup()
+        }   
     }
 
-    pushNewContext(newNode: ProstoParseNode, content: ProstoParseNodeContext['content']) {
+    pushNewContext(newNode: ProstoParserNode, content: ProstoParserNodeContext['content']) {
         this.index++
         const ctx = newNode.createContext(this.index, this.stack.length + 1, this)
         ctx.content = content
+        this.context.beforeChildParse(ctx)
         this.context.content.push(ctx)
         this.stack.push(this.context)
         this.hoistManager.addHoistOptions(this.context)
         this.context = ctx
-        this.node = this.context.node
     }
 
     fromStack(depth = 0) {
@@ -162,7 +145,7 @@ export class ProstoParserRootContext {
     getCallbackData<T = Record<string, unknown>>(matched?: RegExpMatchArray): TPorstoParserCallbackData<T> | TPorstoParserCallbackDataMatched<T> {
         return {
             rootContext: this,
-            context: this.context,
+            context: this.context as ProstoParserNodeContext<T>,
             matched,
             customData: this.context.getCustomData<T>(),
         }
@@ -185,6 +168,21 @@ export class ProstoParserRootContext {
             console.error(renderCodeFragment(this.src.split('\n'), {
                 row: row,
                 error: col,
+            }))
+        }
+        throw new Error(message)
+    }
+
+    panicBlock(message: string, topBackOffset = 0, bottomBackOffset = 0) {
+        if (this.pos > 0) {
+            const { row, col } = this.getPosition(-bottomBackOffset)
+            console.error(banner + __DYE_RED_BRIGHT__, message, __DYE_RESET__)
+            console.error(this.context.toTree())
+            console.error(renderCodeFragment(this.src.split('\n'), {
+                row: this.context.startPos.row,
+                error: this.context.startPos.col - topBackOffset,
+                rowEnd: row,
+                errorEnd: col,
             }))
         }
         throw new Error(message)

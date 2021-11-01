@@ -1,17 +1,18 @@
 import { ProstoParser } from './'
-import { ProstoParseNode } from './node'
+import { ProstoParserNode } from './node'
 import { dye } from '@prostojs/dye'
-import { ProstoParseNodeContext } from './node-context'
 import { TProstoParserHoistOptions } from './p.types'
+import { GenericCommentNode, GenericDummyNode, GenericRootNode, GenericStringNode, GenericXmlAttributeNode, GenericXmlAttributeValue, GenericXmlInnerNode, GenericXmlTagNode } from './generic-nodes'
+import { GenericStringExpressionNode } from './generic-nodes/string-expression-node'
 
 const negativeLookBehindEscapingSlash = /[^\\][\\](\\\\)*$/
 describe('ProstoParser', () => {
     it('must parse URI pattern expression', () => {
         const nodes = {
-            root: new ProstoParseNode({
+            root: new ProstoParserNode({
                 label: 'Static',
             }),
-            param: new ProstoParseNode({
+            param: new ProstoParserNode({
                 label: 'Parameter',
                 startsWith: {
                     token: ':',
@@ -27,7 +28,7 @@ describe('ProstoParser', () => {
                 },
                 popsAtEOFSource: true,
             }),
-            regex: new ProstoParseNode({
+            regex: new ProstoParserNode({
                 label: 'RegEx',
                 startsWith: {
                     token: '(',
@@ -49,7 +50,7 @@ describe('ProstoParser', () => {
                     }
                 },
             }),
-            wildcard: new ProstoParseNode({
+            wildcard: new ProstoParserNode({
                 label: 'Wildcard',
                 startsWith: {
                     token: '*',
@@ -86,13 +87,10 @@ describe('ProstoParser', () => {
         nodes.regex.addRecognizableNode(nodes.regex)
         nodes.regex.addMergeWith({ parent: nodes.regex, join: true })
 
-        const parser = new ProstoParser({
-            rootNode: nodes.root,
-            nodes: Object.values(nodes),
-        })
+        const parser = new ProstoParser(nodes.root)
 
         const result = parser.parse(
-            '/test/:name1-:name2(a(?:test(inside))b)/*(d)/test/*/:ending',
+            '/test/:name1-:name2(a(?:test(ins', // ide))b)/*(d)/test/*/:ending',
         )
         const tree = result.toTree()
         console.log(tree)
@@ -113,214 +111,55 @@ describe('ProstoParser', () => {
     })
 
     it('must parse html', () => {
-        enum ENode {
-            DOCUMENT,
-            TAG,
-            VOID_TAG,
-            ATTRIBUTE,
-            VALUE,
-            INNER,
-            COMMENT,
-        }
-
-        const htmlVoidTags = [
-            'area',
-            'base',
-            'br',
-            'col',
-            'command',
-            'embed',
-            'hr',
-            'img',
-            'input',
-            'keygen',
-            'link',
-            'meta',
-            'param',
-            'source',
-            'track',
-            'wbr',
-        ]
-
-        interface TTagData {
-            tag: string,
-            endtag: string | null,
-        }
-
-        const tag = new ProstoParseNode<TTagData>({
-            id: ENode.TAG,
-            label: '',
-            startsWith: {
-                token: /^<([^\s\>\/]+)/,
-                // negativeLookAhead: /^\//,
-                omit: true,
-            },
-            icon: '<>',
-            onMatch({ matched, context, customData }) {
-                customData.tag = matched[1]
-                context.icon = matched[1]
-            },
-            endsWith: {
-                token: /^(?:\/\>|\<\/\s*(\w+)\s*\>)/,
-                omit: true,
-                onMatchToken: ({ context, matched, customData }) => {
-                    customData.endtag = matched ? matched[1] : null
-                    return true
-                },
-            },
-            skipToken: /^\s+/,
-            badToken: /./,
-            onPop({ customData, rootContext, context }) {
-                if (
-                    typeof customData.endtag === 'string' &&
-                    customData.tag !== customData.endtag
-                ) {
-                    rootContext.panic(
-                        `Open tag <${ customData.tag }> and closing tag </${ customData.endtag || '' }> must be equal.`,
-                        customData.endtag.length + 1,
-                    )
-                }
-                context.icon = '<' + customData.tag + '>'
-            },
-            recognizes: [ENode.INNER, ENode.ATTRIBUTE],
+        const rootNode = new GenericRootNode()
+        const docTypeNode = new GenericDummyNode({
+            startToken: '<!DOCTYPE ',
+            endToken: '>',
+            label: 'Document Type',
         })
-        const voidTag = new ProstoParseNode<TTagData>({
-            id: ENode.VOID_TAG,
-            label: '',
-            startsWith: {
-                token: new RegExp('^<(' + htmlVoidTags.join('|') + ')[\\s\\>]'),
-                omit: true,
-            },
-            onMatch({ matched, customData }) {
-                customData.tag = (matched || [])[1]
-            },
-            endsWith: {
-                token: /^\/?\>/,
-                omit: true,
-            },
-            onPop({ context, customData }) {
-                context.icon = '<' + customData.tag + '>'
-            },
-            skipToken: /^\s+/,
-            mapContent: {},
-            recognizes: [ENode.ATTRIBUTE],
+        const commentNode = new GenericCommentNode({
+            block: true,
+            delimiters: ['<!--', '-->'],
         })
+        const innerNode = new GenericXmlInnerNode()
+        const tagNode = new GenericXmlTagNode({ innerNode })
+        const valueNode = new GenericXmlAttributeValue()
+        const attrNode = new GenericXmlAttributeNode({ valueNode })
+        const stringNode = new GenericStringNode()
+        const expression = new GenericStringExpressionNode(stringNode)
+        
+        rootNode.addRecognizableNode(docTypeNode, commentNode, tagNode, expression)
+        innerNode.addRecognizableNode(commentNode, tagNode, expression)
+        tagNode.addRecognizableNode(innerNode, attrNode)
 
-        const parser = new ProstoParser({
-            rootNode: new ProstoParseNode({
-                id: ENode.DOCUMENT,
-                label: 'Document',
-                skipToken: /^\s+/,
-                recognizes: [ENode.COMMENT, ENode.VOID_TAG, ENode.TAG],
-            }),
-            nodes: [
-                tag,
-                voidTag,
-                new ProstoParseNode({
-                    id: ENode.COMMENT,
-                    label: __DYE_WHITE__ + __DYE_DIM__ + 'comment',
-                    icon: __DYE_WHITE__ + __DYE_DIM__ + '“',
-                    startsWith: {
-                        token: '<!--',
-                        omit: true,
-                    },
-                    endsWith: {
-                        token: '-->',
-                        omit: true,
-                    },
-                    recognizes: [],
-                }),
-                new ProstoParseNode({
-                    id: ENode.ATTRIBUTE,
-                    label: 'attribute',
-                    icon: '=',
-                    startsWith: {
-                        token: /^[a-zA-Z0-9\.\-\_\@]/,
-                    },
-                    endsWith: {
-                        token: /^[\s\n\/>]/,
-                        eject: true,
-                    },
-                    badToken: /^["'`\s]/i,
-                    hoistChildren: [
-                        {
-                            node: ENode.VALUE,
-                            as: 'value',
-                            removeFromContent: true,
-                            deep: 1,
-                            map: ({ content }) => content.join(''),
-                        },
-                    ],
-                    mapContent: {
-                        key: (content) => content.shift(),
-                    },
-                    onPop({ context }) {
-                        context.label = (context.getCustomData().key as string)
-                    },
-                    popsAfterNode: [ENode.VALUE],
-                    recognizes: [ENode.VALUE],
-                }),
-                new ProstoParseNode({
-                    id: ENode.VALUE,
-                    label: 'value',
-                    startsWith: {
-                        token: ['="', '=\''],
-                        omit: true,
-                    },
-                    onMatch({ matched, context }) {
-                        context.getCustomData().quote = (matched && matched[0] || '')[1]
-                    },
-                    endsWith: {
-                        token: ['"', '\''],
-                        omit: true,
-                        negativeLookBehind: negativeLookBehindEscapingSlash,
-                        onMatchToken({ matched, context }) {
-                            const quote = matched && matched[0] || ''
-                            return quote === context.getCustomData().quote
-                        },
-                    },
-                    recognizes: [],
-                }),
-                new ProstoParseNode({
-                    id: ENode.INNER,
-                    label: 'inner',
-                    startsWith: {
-                        token: '>',
-                        omit: true,
-                    },
-                    endsWith: {
-                        token: '</',
-                        eject: true,
-                    },
-                    recognizes: [ENode.COMMENT, ENode.VOID_TAG, ENode.TAG],
-                }),
-            ],
-        })
+        const parser = new ProstoParser(rootNode)
 
-        const result = parser.parse(`<html>
+        const result = parser.parse(`<!DOCTYPE html>
+        <html>
         <head>
             <meta charset="utf-8">
             <title>My test page</title>
             <!-- First Comment -->
         </head>
         <body>
-            <!-- <div>commented div {{= value =}}: {{= item.toUpperCase() =}} </div> -->
-            <img src="images/firefox-icon.png" rw:alt="'My test image ' + url">
-            <div rw-for="item of items">
-                <a rw:href="item" />
-                {{= item =}}
+            <!-- <div>commented div {{ value }}: {{ item.toUpperCase() }} </div> -->
+            <img src="images/firefox-icon.png" :alt="'My test image ' + url">
+            <div v-for="item of items">
+                <a :href="item" />
+                {{ item }}
             </div>
-            <span rw-if="condition" rw:class=""> condition 1 </span>
-            <span rw-else-if="a === 5"> condition 2 </span>
-            <span rw-else> condition 3 </span>
+            <span v-if="condition" :class=""> condition 1 </span>
+            <span v-else-if="a === 5"> condition 2 </span>
+            <span v-else> condition 3 </span>
+            <div unquoted=value />
             <div 
                 dense="ab\\"de"
-                rw:data-id="d.id"
-                rw:data-count="d.count"
-                rw:data-weight="d.w"
-                rw:class="white ? 'white' : 'bg-white'"
+                :data-id="d.id"
+                :data-count="d.count"
+                :data-weight="d.w"
+                :class="white ? 'white' : 'bg-white'"
             >
-            {{= 'so good \\' =}}' =}}
+            {{ 'so good \\' }}' }}
             </div>
         </body>
         </html>`.trim(),
@@ -329,17 +168,21 @@ describe('ProstoParser', () => {
         console.log(tree)
 
         expect(dye.strip(tree)).toMatchInlineSnapshot(`
-"◦ Document
-└─ <html> tag(html) endtag(html)
+"ROOT
+├─ · Document Type
+│  └─ «html»
+├─ «\\\\n        »
+└─ html tag(html) endTag(html)
    └─ ◦ inner
       ├─ «\\\\n        »
-      ├─ <head> tag(head) endtag(head)
+      ├─ head tag(head) endTag(head)
       │  └─ ◦ inner
       │     ├─ «\\\\n            »
-      │     ├─ <meta> tag(meta)
-      │     │  └─ = charset value(utf-8) key(charset)
+      │     ├─ meta tag(meta) isVoid☑
+      │     │  ├─ « »
+      │     │  └─ = attribute key(charset) value(utf-8)
       │     ├─ «\\\\n            »
-      │     ├─ <title> tag(title) endtag(title)
+      │     ├─ title tag(title) endTag(title)
       │     │  └─ ◦ inner
       │     │     └─ «My test page»
       │     ├─ «\\\\n            »
@@ -347,48 +190,72 @@ describe('ProstoParser', () => {
       │     │  └─ « First Comment »
       │     └─ «\\\\n        »
       ├─ «\\\\n        »
-      ├─ <body> tag(body) endtag(body)
+      ├─ body tag(body) endTag(body)
       │  └─ ◦ inner
       │     ├─ «\\\\n            »
       │     ├─ “ comment
-      │     │  └─ « <div>commented div {{= value =}}: {{= item.toUpperCase() =}} </div> »
+      │     │  └─ « <div>commented div {{ value }}: {{ item.toUpperCase() }} </div> »
       │     ├─ «\\\\n            »
-      │     ├─ <img> tag(img)
-      │     │  ├─ = src value(images/firefox-icon.png) key(src)
-      │     │  └─ = rw:alt value('My test image ' + url) key(rw:alt)
+      │     ├─ img tag(img) isVoid☑
+      │     │  ├─ « »
+      │     │  ├─ = attribute key(src) value(images/firefox-icon.png)
+      │     │  ├─ « »
+      │     │  └─ = attribute key(:alt) value('My test image ' + url)
       │     ├─ «\\\\n            »
-      │     ├─ <div> tag(div) endtag(div)
-      │     │  ├─ = rw-for value(item of items) key(rw-for)
+      │     ├─ div tag(div) endTag(div)
+      │     │  ├─ « »
+      │     │  ├─ = attribute key(v-for) value(item of items)
       │     │  └─ ◦ inner
       │     │     ├─ «\\\\n                »
-      │     │     ├─ <a> tag(a)
-      │     │     │  └─ = rw:href value(item) key(rw:href)
-      │     │     └─ «\\\\n                {{= item =}}\\\\n            »
+      │     │     ├─ a tag(a)
+      │     │     │  ├─ « »
+      │     │     │  ├─ = attribute key(:href) value(item)
+      │     │     │  └─ « »
+      │     │     ├─ «\\\\n                »
+      │     │     ├─ ≈ string expression( item )
+      │     │     └─ «\\\\n            »
       │     ├─ «\\\\n            »
-      │     ├─ <span> tag(span) endtag(span)
-      │     │  ├─ = rw-if value(condition) key(rw-if)
-      │     │  ├─ = rw:class value() key(rw:class)
+      │     ├─ span tag(span) endTag(span)
+      │     │  ├─ « »
+      │     │  ├─ = attribute key(v-if) value(condition)
+      │     │  ├─ « »
+      │     │  ├─ = attribute key(:class) value()
       │     │  └─ ◦ inner
       │     │     └─ « condition 1 »
       │     ├─ «\\\\n            »
-      │     ├─ <span> tag(span) endtag(span)
-      │     │  ├─ = rw-else-if value(a === 5) key(rw-else-if)
+      │     ├─ span tag(span) endTag(span)
+      │     │  ├─ « »
+      │     │  ├─ = attribute key(v-else-if) value(a === 5)
       │     │  └─ ◦ inner
       │     │     └─ « condition 2 »
       │     ├─ «\\\\n            »
-      │     ├─ <span> tag(span) endtag(span)
-      │     │  ├─ = rw-else key(rw-else)
+      │     ├─ span tag(span) endTag(span)
+      │     │  ├─ « »
+      │     │  ├─ = attribute key(v-else)
       │     │  └─ ◦ inner
       │     │     └─ « condition 3 »
       │     ├─ «\\\\n            »
-      │     ├─ <div> tag(div) endtag(div)
-      │     │  ├─ = dense value(ab\\\\\\"de) key(dense)
-      │     │  ├─ = rw:data-id value(d.id) key(rw:data-id)
-      │     │  ├─ = rw:data-count value(d.count) key(rw:data-count)
-      │     │  ├─ = rw:data-weight value(d.w) key(rw:data-weight)
-      │     │  ├─ = rw:class value(white ? 'white' : 'bg-white') key(rw:class)
+      │     ├─ div tag(div)
+      │     │  ├─ « »
+      │     │  ├─ = attribute key(unquoted) value(value)
+      │     │  └─ « »
+      │     ├─ «\\\\n            »
+      │     ├─ div tag(div) endTag(div)
+      │     │  ├─ « \\\\n                »
+      │     │  ├─ = attribute key(dense) value(ab\\\\\\"de)
+      │     │  ├─ «\\\\n                »
+      │     │  ├─ = attribute key(:data-id) value(d.id)
+      │     │  ├─ «\\\\n                »
+      │     │  ├─ = attribute key(:data-count) value(d.count)
+      │     │  ├─ «\\\\n                »
+      │     │  ├─ = attribute key(:data-weight) value(d.w)
+      │     │  ├─ «\\\\n                »
+      │     │  ├─ = attribute key(:class) value(white ? 'white' : 'bg-white')
+      │     │  ├─ «\\\\n            »
       │     │  └─ ◦ inner
-      │     │     └─ «\\\\n            {{= 'so good \\\\' =}}' =}}\\\\n            »
+      │     │     ├─ «\\\\n            »
+      │     │     ├─ ≈ string expression( 'so good \\\\' }}' )
+      │     │     └─ «\\\\n            »
       │     └─ «\\\\n        »
       └─ «\\\\n        »
 "

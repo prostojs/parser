@@ -1,11 +1,13 @@
-import { ProstoParseNode } from './node'
+import { TProstoParserNodeOptions } from '.'
+import { ProstoParserNode } from './node'
+import { ProstoParserNodeBase } from './node-base'
 import { ProstoParserRootContext } from './root-context'
 import { parserTree } from './tree'
 
-export class ProstoParseNodeContext {
-    public content: (string | ProstoParseNodeContext | 0)[] = []
+export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
+    public content: (string | ProstoParserNodeContext | 0)[] = []
 
-    protected readonly _customData: Record<string, unknown> = {}
+    protected readonly _customData: T = {} as T
 
     public label: string
 
@@ -17,16 +19,24 @@ export class ProstoParseNodeContext {
 
     public endPos: { row: number, col: number, pos: number }
 
-    constructor(protected readonly _node: ProstoParseNode, public readonly index: number, public readonly level: number, rootContext?: ProstoParserRootContext) {
-        this.label = _node.options.label || ''
-        this.icon = _node.options.icon || '◦'
+    protected options: TProstoParserNodeOptions<T>
+
+    public getOptions(): Required<TProstoParserNodeOptions<T>> {
+        return this.options as Required<TProstoParserNodeOptions<T>>
+    }
+
+    constructor(protected readonly _node: ProstoParserNode<T>, public readonly index: number, public readonly level: number, rootContext?: ProstoParserRootContext) {
+        super()
+        this.options = _node.getOptions()
+        this.label = this.options.label || ''
+        this.icon = this.options.icon || '◦'
         this.rootContext = rootContext || new ProstoParserRootContext(this)
         this.startPos = this.rootContext.getPosition()
         this.endPos = this.rootContext.getPosition()
     }
 
-    public getCustomData<T = Record<string, unknown>>() {
-        return this._customData as unknown as T
+    public getCustomData<T2 = T>() {
+        return this._customData as unknown as T2
     }
 
     public get nodeId() {
@@ -41,20 +51,31 @@ export class ProstoParseNodeContext {
         return parserTree.render(this)
     }
 
-    appendContent(input: string | ProstoParseNodeContext['content']) {
+    beforeChildParse(child: ProstoParserNodeContext) {
+        if (this.options.onBeforeChildParse) {
+            return this.options.onBeforeChildParse(child, this.rootContext.getCallbackData())
+        }
+    }
+
+    afterChildParse(child: ProstoParserNodeContext) {
+        if (this.options.onAfterChildParse) {
+            return this.options.onAfterChildParse(child, this.rootContext.getCallbackData())
+        }
+    }
+
+    appendContent(input: string | ProstoParserNodeContext['content']) {
         let s = input
-        const node = this.node
         this.endPos = this.rootContext.getPosition()
         if (typeof s === 'string') {
-            const matched = node.skipMatches('', s)
+            const matched = this.skipMatches('', s)
             if (matched) {
                 return this.rootContext.jump(matched[0].length - 1)
-            } else if (node.badMatches('', s) || !node.goodMatches('', s)) {
+            } else if (this.badMatches('', s) || !this.goodMatches('', s)) {
                 this.rootContext.panic(`The token "${ s.replace(/"/g, '\\"') }" is not allowed in "${ this.node.name }".`)
             }
         }
-        if (node.options.onAppendContent) {
-            s = node.options.onAppendContent(input, this.rootContext.getCallbackData())
+        if (this.options.onAppendContent) {
+            s = this.options.onAppendContent(input, this.rootContext.getCallbackData())
         }
         const len = this.content.length
         const contentLast = this.content[len - 1]
@@ -78,20 +99,26 @@ export class ProstoParseNodeContext {
     onPop() {
         this.endPos = this.rootContext.getPosition()
         this.processMappings()
-        if (this.node.options.onPop) {
-            this.node.options.onPop(this.rootContext.getCallbackData())
+        if (this.options.onPop) {
+            this.options.onPop(this.rootContext.getCallbackData())
         }
     }
 
-    getPopsAfter(): number[] {
-        return this.node.popsAfter
+    cleanup() {
+        // cleaning up the copy of options
+        // when we don't need it any longer
+        this.options = null as unknown as TProstoParserNodeOptions<T>
     }
 
-    mergeIfRequired(parentContext: ProstoParseNodeContext) {
-        if (parentContext && this.node.mergeWith) {
+    getPopsAfter(): ProstoParserNode[] {
+        return this.options.popsAfterNode || []
+    }
+
+    mergeIfRequired(parentContext: ProstoParserNodeContext) {
+        if (parentContext && this.options.mergeWith) {
             const parentNode = parentContext.node
-            for (let i = 0; i < this.node.mergeWith.length; i++) {
-                const { parent, join } = this.node.mergeWith[i]
+            for (let i = 0; i < this.options.mergeWith.length; i++) {
+                const { parent, join } = this.options.mergeWith[i]
                 const mergeWith = [parent].flat().map(item => typeof item === 'object' ? item.id : item)
                 if (mergeWith[0] === '*' || mergeWith.includes(parentNode.id)) {
                     parentContext.content = parentContext.content.slice(0, parentContext.content.length - 1)
@@ -126,11 +153,11 @@ export class ProstoParseNodeContext {
     }
 
     processMapContent() {
-        const targetNodeOptions = this.node.options
+        const targetNodeOptions = this.options
         if (targetNodeOptions.mapContent) {
             Object.keys(targetNodeOptions.mapContent).forEach((key: string) => {
                 if (targetNodeOptions.mapContent && targetNodeOptions.mapContent[key]) {
-                    this._customData[key] = targetNodeOptions.mapContent[key](this.content)
+                    (this._customData as Record<string, unknown>)[key] = targetNodeOptions.mapContent[key](this.content)
                 }
             })
         }

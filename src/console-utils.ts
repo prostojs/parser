@@ -4,36 +4,42 @@ export interface TCodeFragmentOptions {
     limit?: number
     offset?: number
     error?: number
+    errorEnd?: number
 }
 
 export function renderCodeFragment(lines: string[], options: TCodeFragmentOptions) {
     const row = (options.row || 1) - 1
-    const rowEnd = options.rowEnd || -1
+    const rowEnd = options.rowEnd ? options.rowEnd - 1 : -1
     const limit = Math.min(options.limit || 6, lines.length)
     const offset = Math.min(options.offset || 3, lines.length)
     const error = options.error
+    const errorEnd = options.errorEnd
     let output = ''
     const delta = rowEnd - row
+    const maxIndex = lines.length
     if (delta > limit ) {
         let longestLine = 0
         const newLimit = Math.floor(limit / 2)
         for (let i = 0; i < newLimit + offset; i++) {
             const index = row + i - offset
-            longestLine = Math.max(lines[index].length, longestLine)
-            output += renderLine(lines[index], index + 1, index === row ? error : undefined, index === row || index === rowEnd ? 'bold' : '')
+            const line = lines[index] || ''
+            longestLine = Math.max(line.length, longestLine)
+            output += renderLine(line, index < maxIndex ? index + 1 : '', index === row ? error : undefined, index === row || index === rowEnd ? 'bold' : '')
         }
         let output2 = ''
         for (let i = newLimit + offset; i > 0; i--) {
             const index = rowEnd - i + offset
-            longestLine = Math.max(lines[index].length, longestLine)
-            output2 += renderLine(lines[index], index + 1, index === row ? error : undefined, index === row || index === rowEnd ? 'bold' : '')
+            const line = lines[index] || ''
+            longestLine = Math.max(line.length, longestLine)
+            output2 += renderLine(line, index < maxIndex ? index + 1 : '', index === rowEnd ? errorEnd : undefined, index === row || index === rowEnd ? 'bold' : '')
         }
         output += renderLine('—'.repeat(longestLine), '———', undefined, 'dim') + output2
     } else {
         for (let i = 0; i < limit + offset; i++) {
             const index = row + i - offset
             if (index <= lines.length + 1) {
-                output += renderLine(lines[index], index + 1, index === row ? error : undefined, index === row || index === rowEnd ? 'bold' : '')
+                const errorCol = index === row ? error : index === rowEnd ? errorEnd : undefined
+                output += renderLine(lines[index], index < maxIndex ? index + 1 : '', errorCol, index === row || index === rowEnd ? 'bold' : '')
             }
         }
     }
@@ -42,8 +48,8 @@ export function renderCodeFragment(lines: string[], options: TCodeFragmentOption
 
 function lineStyles(s: string) {
     return __DYE_BLUE_BRIGHT__ + (s || '')
-        .replace(/([a-z_]+)/ig, __DYE_GREEN__ + '$1' + __DYE_BLUE_BRIGHT__) 
-        .replace(/([\=\.\/'"`\:\+]+)/ig, __DYE_CYAN__ + '$1' + __DYE_BLUE_BRIGHT__)
+        .replace(/([a-z_]+)/ig, __DYE_GREEN__ + '$1' + '\x1b[39;33m') 
+        .replace(/([\=\.\/'"`\:\+]+)/ig, __DYE_CYAN__ + '$1' + __DYE_COLOR_OFF__)
         // .replace(/([]+)/ig, __DYE_BLUE_BRIGHT__ + '$1' + __DYE_BLUE__)  + __DYE_RESET__
 }
 function lineStylesError(s: string) {

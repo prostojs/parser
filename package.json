@@ -50,7 +50,7 @@
   },
   "homepage": "https://github.com/prostojs/parser#readme",
   "devDependencies": {
-    "@prostojs/dye": "^0.2.0",
+    "@prostojs/dye": "^0.3.0",
     "@microsoft/api-extractor": "^7.15.1",
     "@rollup/plugin-commonjs": "^21.0.0",
     "@rollup/plugin-node-resolve": "^13.0.6",

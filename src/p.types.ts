@@ -1,39 +1,39 @@
-import { ProstoParseNode } from './node'
-import { ProstoParseNodeContext } from './node-context'
+import { ProstoParserNode } from './node'
+import { ProstoParserNodeContext } from './node-context'
 import { ProstoParserRootContext } from './root-context'
 
 export interface TProstoParserHoistOptions<T = any> {
-    node: number | ProstoParseNode,
+    node: ProstoParserNode,
     as: keyof T,
     asArray?: boolean,
     deep?: number | boolean
     removeFromContent?: boolean
-    map?: (ctx: ProstoParseNodeContext) => unknown
+    map?: (ctx: ProstoParserNodeContext) => unknown
 }
 
-export interface TProstoParseNode<T = any> {
-    id?: number
+export interface TProstoParserNodeOptions<T = any> {
     label?: string
     icon?: string
     startsWith?: TProstoParserTokenDescripor<T>
     endsWith?: TProstoParserTokenDescripor<T>
-    popsAfterNode?: number | ProstoParseNode | (number | ProstoParseNode)[]
+    popsAfterNode?: ProstoParserNode[]
     popsAtEOFSource?: boolean
     mergeWith?: TPorstoParseNodeMergeOptions[]
     goodToken?: string | string[] | RegExp,
     badToken?: string | string[] | RegExp,
     skipToken?: string | string[] | RegExp,
-    recognizes?: (number | ProstoParseNode )[]
+    recognizes?: ProstoParserNode[]
     hoistChildren?: TProstoParserHoistOptions<T>[]
-    mapContent?: { [key: string]: (content: ProstoParseNodeContext['content']) => unknown }
-    // constraits?: TProstoParserNodeConstraits
+    mapContent?: { [key: string]: (content: ProstoParserNodeContext['content']) => unknown }
     onPop?: (data: TPorstoParserCallbackData<T>) => void
     onMatch?: (data: TPorstoParserCallbackDataMatched<T>) => void
-    onAppendContent?: (s: string | ProstoParseNodeContext['content'], data: TPorstoParserCallbackData<T>) => string | ProstoParseNodeContext['content']
+    onAppendContent?: (s: string | ProstoParserNodeContext['content'], data: TPorstoParserCallbackData<T>) => string | ProstoParserNodeContext['content']
+    onBeforeChildParse?: (childContext: ProstoParserNodeContext, data: TPorstoParserCallbackData<T>) => void
+    onAfterChildParse?: (childContext: ProstoParserNodeContext, data: TPorstoParserCallbackData<T>) => void
 }
 
 export interface TPorstoParseNodeMergeOptions {
-    parent: ProstoParseNode | number | (number | ProstoParseNode)[] | '*'
+    parent: ProstoParserNode | ProstoParserNode[] | '*'
     join?: boolean
 }
 
@@ -52,17 +52,12 @@ export interface TPorstoParserCallbackDataMatched<T = any> extends TPorstoParser
 
 export interface TPorstoParserCallbackData<T = any> {
     rootContext: ProstoParserRootContext
-    context: ProstoParseNodeContext
+    context: ProstoParserNodeContext<T>
     customData: T
 }
 
 export interface TProstoParserNodeConstraits {
 
-}
-
-export interface TProstoParserOptions {
-    nodes: ProstoParseNode<any>[]
-    rootNode: ProstoParseNode<any>
 }
 
 export interface TParseMatchResult {
