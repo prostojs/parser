@@ -1,12 +1,12 @@
-import { TParseMatchResult, TPorstoParserCallbackData, TPorstoParserCallbackDataMatched } from '.'
-import { renderCodeFragment } from './console-utils'
+import { TParseMatchResult, TPorstoParserCallbackData, TPorstoParserCallbackDataMatched } from '../p.types'
+import { renderCodeFragment } from '../console-utils'
 import { ProstoHoistManager } from './hoist-manager'
 import { ProstoParserNode } from './node'
 import { ProstoParserNodeContext } from './node-context'
 
 const banner = __DYE_RED__ + '[parser]' + __DYE_COLOR_OFF__
 
-export class ProstoParserRootContext {
+export class ProstoParserContext {
     protected nodes: Record<number, ProstoParserNode> = {} as Record<number, ProstoParserNode>
 
     public pos = 0
@@ -31,12 +31,7 @@ export class ProstoParserRootContext {
         this.context = root
     }
 
-    getNode(id: number) {
-        return this.nodes[id]
-    }
-
-    public parse(nodes: Record<number, ProstoParserNode>, src: string) {
-        this.nodes = nodes
+    public parse(src: string) {
         this.src = src,
         this.here = src,
         this.l = src.length
@@ -141,7 +136,7 @@ export class ProstoParserRootContext {
 
     getCallbackData<T = Record<string, unknown>>(matched?: RegExpMatchArray): TPorstoParserCallbackData<T> | TPorstoParserCallbackDataMatched<T> {
         return {
-            rootContext: this,
+            parserContext: this,
             context: this.context as ProstoParserNodeContext<T>,
             matched,
             customData: this.context.getCustomData<T>(),

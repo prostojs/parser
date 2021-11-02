@@ -41,9 +41,9 @@ export class GenericXmlAttributeNode<T extends TAttributeCustomData> extends Pro
                     map: ({ content }) => content.join(''),
                 },
             ] : [],
-            onPop({ customData, rootContext }) {
+            onPop({ customData, parserContext }) {
                 if (options?.notNull && typeof customData.value === 'undefined') {
-                    rootContext.panic(`Interpolation attribute "${ customData.key }" must have value.`)
+                    parserContext.panic(`Interpolation attribute "${ customData.key }" must have value.`)
                 }
             },
             popsAfterNode: options?.valueNode ? [options?.valueNode] : [],

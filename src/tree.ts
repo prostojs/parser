@@ -1,5 +1,5 @@
 import { ProstoTree } from '@prostojs/tree'
-import { ProstoParserNodeContext } from './node-context'
+import { ProstoParserNodeContext } from './model/node-context'
 
 const styles = {
     banner: (s: string) => __DYE_RED__ + s + __DYE_COLOR_OFF__,

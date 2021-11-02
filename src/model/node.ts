@@ -1,7 +1,7 @@
-import { TParseMatchResult, TPorstoParseNodeMergeOptions, TPorstoParserCallbackData, TProstoParserNodeOptions, TProstoParserHoistOptions, TProstoParserTokenDescripor } from '.'
+import { TProstoParserNodeOptions } from '../p.types'
 import { ProstoParserNodeBase } from './node-base'
 import { ProstoParserNodeContext } from './node-context'
-import { ProstoParserRootContext } from './root-context'
+import { ProstoParserContext } from './parser-context'
 
 let idCounter = 0
 
@@ -40,11 +40,15 @@ export class ProstoParserNode<T = any> extends ProstoParserNodeBase<T> {
         }
     }
 
-    public createContext(index: number, level: number, rootContext?: ProstoParserRootContext): ProstoParserNodeContext {
+    public createContext(index: number, level: number, rootContext?: ProstoParserContext): ProstoParserNodeContext {
         return new ProstoParserNodeContext(this as unknown as ProstoParserNode, index, level, rootContext)
     }
 
     public get name() {
         return this.constructor.name + '[' + this.id.toString() + ']' + '(' + (this.options.label || this.options.icon || '') + ')'
+    }
+    
+    public parse(source: string) {
+        return this.createContext(0, 0).parserContext.parse(source)
     }
 }

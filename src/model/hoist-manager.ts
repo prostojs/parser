@@ -1,4 +1,4 @@
-import { TProstoParserHoistOptions } from '.'
+import { TProstoParserHoistOptions } from '../p.types'
 import { ProstoParserNodeContext } from './node-context'
 
 interface HoistItems { [contextIndex: number]: {options: TProstoParserHoistOptions, context: ProstoParserNodeContext} }

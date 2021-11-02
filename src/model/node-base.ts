@@ -1,4 +1,6 @@
-import { ProstoParserNode, TParseMatchResult, TPorstoParseNodeMergeOptions, TPorstoParserCallbackData, TProstoParserNodeOptions, TProstoParserHoistOptions, TProstoParserTokenDescripor } from '.'
+import { TParseMatchResult, TPorstoParseNodeMergeOptions, TPorstoParserCallbackData,
+    TProstoParserNodeOptions, TProstoParserHoistOptions, TProstoParserTokenDescripor } from '../p.types'
+import { ProstoParserNode } from './node'
 
 export abstract class ProstoParserNodeBase<T = any> {
     protected abstract readonly options: TProstoParserNodeOptions<T>

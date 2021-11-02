@@ -1,6 +1,6 @@
-import { ProstoParserNode } from './node'
-import { ProstoParserNodeContext } from './node-context'
-import { ProstoParserRootContext } from './root-context'
+import { ProstoParserNode } from './model/node'
+import { ProstoParserNodeContext } from './model/node-context'
+import { ProstoParserContext } from './model/parser-context'
 
 export interface TProstoParserHoistOptions<T = any> {
     node: ProstoParserNode,
@@ -51,7 +51,7 @@ export interface TPorstoParserCallbackDataMatched<T = any> extends TPorstoParser
 }
 
 export interface TPorstoParserCallbackData<T = any> {
-    rootContext: ProstoParserRootContext
+    parserContext: ProstoParserContext
     context: ProstoParserNodeContext<T>
     customData: T
 }

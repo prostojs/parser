@@ -1,8 +1,8 @@
-import { TProstoParserNodeOptions } from '.'
+import { TProstoParserNodeOptions } from '../p.types'
 import { ProstoParserNode } from './node'
 import { ProstoParserNodeBase } from './node-base'
-import { ProstoParserRootContext } from './root-context'
-import { parserTree } from './tree'
+import { ProstoParserContext } from './parser-context'
+import { parserTree } from '../tree'
 
 export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
     public content: (string | ProstoParserNodeContext | 0)[] = []
@@ -13,7 +13,7 @@ export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
 
     public icon: string
 
-    public readonly rootContext: ProstoParserRootContext
+    public readonly parserContext: ProstoParserContext
 
     public readonly startPos: { row: number, col: number, pos: number }
 
@@ -25,14 +25,14 @@ export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
         return this.options as Required<TProstoParserNodeOptions<T>>
     }
 
-    constructor(protected readonly _node: ProstoParserNode<T>, public readonly index: number, public readonly level: number, rootContext?: ProstoParserRootContext) {
+    constructor(protected readonly _node: ProstoParserNode<T>, public readonly index: number, public readonly level: number, rootContext?: ProstoParserContext) {
         super()
         this.options = _node.getOptions()
         this.label = this.options.label || ''
         this.icon = this.options.icon || '◦'
-        this.rootContext = rootContext || new ProstoParserRootContext(this)
-        this.startPos = this.rootContext.getPosition()
-        this.endPos = this.rootContext.getPosition()
+        this.parserContext = rootContext || new ProstoParserContext(this)
+        this.startPos = this.parserContext.getPosition()
+        this.endPos = this.parserContext.getPosition()
     }
 
     public getCustomData<T2 = T>() {
@@ -53,31 +53,31 @@ export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
 
     beforeChildParse(child: ProstoParserNodeContext) {
         if (this.options.onBeforeChildParse) {
-            return this.options.onBeforeChildParse(child, this.rootContext.getCallbackData())
+            return this.options.onBeforeChildParse(child, this.parserContext.getCallbackData())
         }
     }
 
     afterChildParse(child: ProstoParserNodeContext) {
         if (this.options.onAfterChildParse) {
-            return this.options.onAfterChildParse(child, this.rootContext.getCallbackData())
+            return this.options.onAfterChildParse(child, this.parserContext.getCallbackData())
         }
     }
 
     appendContent(input: string | ProstoParserNodeContext['content']): number {
         let s = input
         let jumpLen = 1
-        this.endPos = this.rootContext.getPosition()
+        this.endPos = this.parserContext.getPosition()
         if (typeof s === 'string') {
             const matched = this.skipMatches('', s)
             if (matched) {
-                return this.rootContext.jump(matched[0].length - 1)
+                return this.parserContext.jump(matched[0].length - 1)
             } else if (this.badMatches('', s) || !this.goodMatches('', s)) {
-                this.rootContext.panic(`The token "${ s.replace(/"/g, '\\"') }" is not allowed in "${ this.node.name }".`)
+                this.parserContext.panic(`The token "${ s.replace(/"/g, '\\"') }" is not allowed in "${ this.node.name }".`)
             }
             jumpLen = s.length
         }
         if (this.options.onAppendContent) {
-            s = this.options.onAppendContent(input, this.rootContext.getCallbackData())
+            s = this.options.onAppendContent(input, this.parserContext.getCallbackData())
             jumpLen = typeof s === 'string' ? s.length : jumpLen
         }
         const len = this.content.length
@@ -101,10 +101,10 @@ export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
     }
 
     onPop() {
-        this.endPos = this.rootContext.getPosition()
+        this.endPos = this.parserContext.getPosition()
         this.processMappings()
         if (this.options.onPop) {
-            this.options.onPop(this.rootContext.getCallbackData())
+            this.options.onPop(this.parserContext.getCallbackData())
         }
     }
 
@@ -151,8 +151,8 @@ export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
     }
 
     processMappings() {
-        this.rootContext.hoistManager.removeHoistOptions(this)
-        this.rootContext.hoistManager.processHoistOptions(this)
+        this.parserContext.hoistManager.removeHoistOptions(this)
+        this.parserContext.hoistManager.processHoistOptions(this)
         this.processMapContent()
     }
 

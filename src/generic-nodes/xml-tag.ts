@@ -78,13 +78,13 @@ export class GenericXmlTagNode<T extends TTagCustomData> extends ProstoParserNod
             },
             // skipToken: /^\s+/,
             badToken: /[^\s]/,
-            onPop({ rootContext, customData }) {
+            onPop({ parserContext, customData }) {
                 if (
                     !customData.isVoid &&
                     typeof customData.endTag === 'string' &&
                     customData.tag !== customData.endTag
                 ) {
-                    rootContext.panicBlock(
+                    parserContext.panicBlock(
                         `Open tag <${ customData.tag }> and closing tag </${ customData.endTag }> must be equal.`,
                         customData.tag.length,
                         customData.endTag.length + 1,

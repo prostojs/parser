@@ -1,9 +1,8 @@
-import { ProstoParser } from './'
-import { ProstoParserNode } from './node'
 import { dye } from '@prostojs/dye'
 import { TProstoParserHoistOptions } from './p.types'
 import { GenericCommentNode, GenericDummyNode, GenericRootNode, GenericStringNode, GenericXmlAttributeNode, GenericXmlAttributeValue, GenericXmlInnerNode, GenericXmlTagNode } from './generic-nodes'
 import { GenericStringExpressionNode } from './generic-nodes/string-expression-node'
+import { ProstoParserNode } from './model'
 
 const negativeLookBehindEscapingSlash = /[^\\][\\](\\\\)*$/
 describe('ProstoParser', () => {
@@ -38,14 +37,14 @@ describe('ProstoParser', () => {
                     token: ')',
                     negativeLookBehind: negativeLookBehindEscapingSlash,
                 },
-                onMatch({ rootContext, context }) {
-                    if (rootContext.fromStack()?.node.id === nodes.regex.id) {
-                        if (!rootContext.here.startsWith('?:')) {
+                onMatch({ parserContext, context }) {
+                    if (parserContext.fromStack()?.node.id === nodes.regex.id) {
+                        if (!parserContext.here.startsWith('?:')) {
                             context.content[0] += '?:'
                         }
                     } else {
-                        if (rootContext.here.startsWith('^')) {
-                            rootContext.jump(1)
+                        if (parserContext.here.startsWith('^')) {
+                            parserContext.jump(1)
                         }
                     }
                 },
@@ -87,10 +86,8 @@ describe('ProstoParser', () => {
         nodes.regex.addRecognizableNode(nodes.regex)
         nodes.regex.addMergeWith({ parent: nodes.regex, join: true })
 
-        const parser = new ProstoParser(nodes.root)
-
-        const result = parser.parse(
-            '/test/:name1-:name2(a(?:test(ins', // ide))b)/*(d)/test/*/:ending',
+        const result = nodes.root.parse(
+            '/test/:name1-:name2(a(?:test(inside))b)/*(d)/test/*/:ending',
         )
         const tree = result.toTree()
         console.log(tree)
@@ -138,9 +135,7 @@ describe('ProstoParser', () => {
         tagNode.addRecognizableNode(innerNode, attrNode)
         cDataNode.addRecognizableNode(expression)
 
-        const parser = new ProstoParser(rootNode)
-
-        const result = parser.parse(`<!DOCTYPE html>
+        const result = rootNode.parse(`<!DOCTYPE html>
         <html>
         <head>
             <meta charset="utf-8">

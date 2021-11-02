@@ -1,4 +1,5 @@
-import { ProstoParserNode, TProstoParserNodeOptions } from '..'
+import { TProstoParserNodeOptions } from '..'
+import { ProstoParserNode } from '../model/node'
 
 interface TGenericCommentNodeOptions {
     block: boolean
@@ -24,13 +25,13 @@ export class GenericCommentNode extends ProstoParserNode {
                 token: '\n',
                 omit: true,
             },
-            onAppendContent(s, { context, rootContext }) {
+            onAppendContent(s, { context, parserContext }) {
                 const options = context.getOptions()
                 if (typeof s === 'string' && !options.recognizes.length) {
                     // jump to the end
-                    const end = typeof options.endsWith?.token === 'string' ? rootContext.here.indexOf(options.endsWith.token) : -1
+                    const end = typeof options.endsWith?.token === 'string' ? parserContext.here.indexOf(options.endsWith.token) : -1
                     if (end >= 0) {
-                        return rootContext.here.slice(0, end)
+                        return parserContext.here.slice(0, end)
                     }
                 }
                 return s
