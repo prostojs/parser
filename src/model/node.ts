@@ -8,26 +8,21 @@ let idCounter = 0
 
 export class ProstoParserNode<T extends TGenericCustomDataType = TDefaultCustomDataType> extends ProstoParserNodeBase<T> {   
     public readonly id: number
-    
-    public onMatch: Required<TProstoParserNodeOptions<T>>['onMatch']
 
     constructor(protected readonly options: TProstoParserNodeOptions<T>) {
         super()
         this.id = idCounter++
-
-        this.onMatch = (d) => options.onMatch ? options.onMatch(d) : undefined
     }
 
     public getOptions(): TProstoParserNodeOptions<T> {
         return {
             label: this.options.label || '',
             icon: this.options.icon || '',
-            startsWith: this.options.startsWith ? { ...this.options.startsWith } : undefined,
-            endsWith: this.options.endsWith ? { ...this.options.endsWith } : undefined,
+            startsWith: (this.options.startsWith ? { ...this.options.startsWith } : this.options.startsWith) as Required<TProstoParserNodeOptions>['startsWith'],
+            endsWith: (this.options.endsWith ? { ...this.options.endsWith } : this.options.endsWith) as Required<TProstoParserNodeOptions>['endsWith'],
             popsAfterNode: [...(this.options.popsAfterNode || [])],
-            popsAtEOFSource: this.options.popsAtEOFSource,
+            popsAtEOFSource: this.options.popsAtEOFSource || false,
             mergeWith: [...(this.options.mergeWith || [])],
-            goodToken: this.options.goodToken || '',
             badToken: this.options.badToken || '',
             skipToken: this.options.skipToken || '',
             recognizes: [...(this.options.recognizes || [])],
@@ -35,9 +30,11 @@ export class ProstoParserNode<T extends TGenericCustomDataType = TDefaultCustomD
             mapContent: {
                 ...this.options.mapContent,
             },
-            onPop: this.options.onPop,
-            onMatch: this.options.onMatch,
-            onAppendContent: this.options.onAppendContent,
+            onPop: this.options.onPop as Required<TProstoParserNodeOptions>['onPop'],
+            onMatch: this.options.onMatch as Required<TProstoParserNodeOptions>['onMatch'],
+            onAppendContent: this.options.onAppendContent as Required<TProstoParserNodeOptions>['onAppendContent'],
+            onAfterChildParse: this.options.onAfterChildParse as Required<TProstoParserNodeOptions>['onAfterChildParse'],
+            onBeforeChildParse: this.options.onBeforeChildParse as Required<TProstoParserNodeOptions>['onBeforeChildParse'],
         }
     }
 

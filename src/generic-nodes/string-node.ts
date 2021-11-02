@@ -1,5 +1,4 @@
 import { ProstoParserNode } from '..'
-import { negativeLookBehindEscapingSlash } from '../constants'
 
 export type TGenericStringNodeCustomData = {
     quote: string
@@ -18,7 +17,7 @@ export class GenericStringNode<T extends TGenericStringNodeCustomData> extends P
             endsWith: {
                 token,
                 omit,
-                negativeLookBehind: negativeLookBehindEscapingSlash,
+                ignoreBackSlashed: true,
                 onMatchToken: ({ matched, customData }) => matched[0] === customData.quote,
             },
         })

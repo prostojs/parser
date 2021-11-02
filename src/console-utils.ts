@@ -50,7 +50,6 @@ function lineStyles(s: string) {
     return __DYE_BLUE_BRIGHT__ + (s || '')
         .replace(/([a-z_]+)/ig, __DYE_GREEN__ + '$1' + '\x1b[39;33m') 
         .replace(/([\=\.\/'"`\:\+]+)/ig, __DYE_CYAN__ + '$1' + __DYE_COLOR_OFF__)
-        // .replace(/([]+)/ig, __DYE_BLUE_BRIGHT__ + '$1' + __DYE_BLUE__)  + __DYE_RESET__
 }
 function lineStylesError(s: string) {
     return __DYE_RED__ + (s || '') + __DYE_RESET__

@@ -3,10 +3,10 @@ import { ProstoParserNode } from './node'
 import { ProstoParserNodeBase } from './node-base'
 import { ProstoParserContext } from './parser-context'
 import { parserTree } from '../tree'
-import { TDefaultCustomDataType, TGenericCustomDataType } from '..'
+import { TDefaultCustomDataType, TGenericCustomDataType, TPorstoParserCallbackDataMatched, TSearchToken } from '..'
 
 export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefaultCustomDataType> extends ProstoParserNodeBase<T> {
-    public content: (string | ProstoParserNodeContext | 0)[] = []
+    public content: (string | ProstoParserNodeContext)[] = []
 
     protected readonly _customData: T = {} as T
 
@@ -20,15 +20,22 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
 
     public endPos: { row: number, col: number, pos: number }
 
+    protected hasNodes: ProstoParserNode[] = []
+
+    protected count: Record<number, number> = {}
+
     protected options: TProstoParserNodeOptions<T>
 
-    public getOptions(): Required<TProstoParserNodeOptions<T>> {
+    protected getOptions(): TProstoParserNodeOptions<T> {
         return this.options as Required<TProstoParserNodeOptions<T>>
     }
 
     constructor(protected readonly _node: ProstoParserNode<T>, public readonly index: number, public readonly level: number, rootContext?: ProstoParserContext) {
         super()
         this.options = _node.getOptions()
+        if (this.options.initCustomData) {
+            this._customData = this.options.initCustomData()
+        }
         this.label = this.options.label || ''
         this.icon = this.options.icon || '◦'
         this.parserContext = rootContext || new ProstoParserContext(this)
@@ -52,56 +59,61 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         return parserTree.render(this)
     }
 
-    beforeChildParse(child: ProstoParserNodeContext) {
-        if (this.options.onBeforeChildParse) {
-            return this.options.onBeforeChildParse(child, this.parserContext.getCallbackData())
+    public getSearchTokens(): TSearchToken[] {
+        const rg = this.getEndTokenRg()
+        const tokens: TSearchToken[] = rg ? [{
+            rg,
+            y: addFlag(rg, 'y'),
+            g: addFlag(rg, 'g'),
+        }] : []
+        this.options.recognizes?.forEach(node => {
+            const rg = node.getStartTokenRg()
+            if (rg) {
+                tokens.push({
+                    rg,
+                    y: addFlag(rg, 'y'),
+                    g: addFlag(rg, 'g'),
+                    node,
+                })
+            }
+        })
+        function addFlag(rg: RegExp, f: string): RegExp {
+            return new RegExp(rg.source, rg.flags + f)
         }
+        return tokens
     }
 
-    afterChildParse(child: ProstoParserNodeContext) {
-        if (this.options.onAfterChildParse) {
-            return this.options.onAfterChildParse(child, this.parserContext.getCallbackData())
-        }
-    }
-
-    appendContent(input: string | ProstoParserNodeContext<T>['content']): number {
+    public appendContent(input: string | ProstoParserNodeContext<T>['content']) {
         let s = input
-        let jumpLen = 1
         this.endPos = this.parserContext.getPosition()
         if (typeof s === 'string') {
-            const matched = this.skipMatches('', s)
-            if (matched) {
-                return this.parserContext.jump(matched[0].length - 1)
-            } else if (this.badMatches('', s) || !this.goodMatches('', s)) {
-                this.parserContext.panic(`The token "${ s.replace(/"/g, '\\"') }" is not allowed in "${ this.node.name }".`)
+            let { skip, bad } = this.getConstraintTokens()
+            skip = skip ? new RegExp(skip.source, skip.flags + 'g') : skip
+            bad = bad ? new RegExp(bad.source, bad.flags + 'g') : bad
+            if (skip) {
+                s = s.replace(skip, '')
             }
-            jumpLen = s.length
+            if (bad) {
+                const m = bad.exec(s)
+                if (m) {
+                    this.parserContext.jump(m.index)
+                    this.parserContext.panic(`The token "${ m[0].replace(/"/g, '\\"') }" is not allowed in "${ this.node.name }".`)
+                }
+            }
         }
         if (this.options.onAppendContent) {
-            s = this.options.onAppendContent(input, this.parserContext.getCallbackData())
-            jumpLen = typeof s === 'string' ? s.length : jumpLen
+            s = this.options.onAppendContent(s, this.parserContext.getCallbackData())
         }
-        const len = this.content.length
-        const contentLast = this.content[len - 1]
-        if (typeof contentLast === 'string') {
+        if (s) {
             if (typeof s === 'string') {
-                this.content[len - 1] += s
+                this.content.push(s)
             } else {
                 this.content.push(...s)
             }
-            return jumpLen
-        } else if (contentLast === 0) {
-            this.content = this.content.slice(0, len - 1)
         }
-        if (typeof s === 'string') {
-            this.content.push(s)
-        } else {
-            this.content.push(...s)
-        }
-        return jumpLen
     }
 
-    onPop() {
+    public onPop() {
         this.endPos = this.parserContext.getPosition()
         this.processMappings()
         if (this.options.onPop) {
@@ -109,17 +121,13 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         }
     }
 
-    cleanup() {
+    public cleanup() {
         // cleaning up the copy of options
         // when we don't need it any longer
         this.options = null as unknown as TProstoParserNodeOptions<T>
     }
 
-    getPopsAfter(): ProstoParserNode[] {
-        return this.options.popsAfterNode || []
-    }
-
-    appendOrMergeTo(parentContext: ProstoParserNodeContext) {
+    public appendOrMergeTo(parentContext: ProstoParserNodeContext) {
         if (parentContext && this.options.mergeWith) {
             const parentNode = parentContext.node
             for (let i = 0; i < this.options.mergeWith.length; i++) {
@@ -134,30 +142,70 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
                             parentContext.appendContent(this.content)
                         }
                     } else {
-                        parentContext.content.push(...this.content, 0)
+                        parentContext.content.push(...this.content)
                     }
-                    return
                 }
             }
         }
-        // we're not merging anymore, so the last zero is useless
-        this.removeLastZero()
     }
 
-    removeLastZero() {
-        const len = this.content.length
-        if (this.content[len - 1] === 0) {
-            this.content = this.content.slice(0, len - 1)
+    public has(node: ProstoParserNode) {
+        return this.hasNodes.includes(node)
+    }
+
+    public countOf(node: ProstoParserNode) {
+        return this.count[node.id] || 0
+    }
+
+    public mapNamedGroups(matched: RegExpExecArray) {
+        if (matched.groups) {
+            // mapping named groups to customData
+            const cd = this.getCustomData<Record<string, unknown>>()
+            for (const [key, value] of Object.entries(matched.groups)) {
+                cd[key] = value
+            }
         }
     }
 
-    processMappings() {
+    //
+    // Fire Hooks Callbacks  =======================================================================================
+    //
+
+    public fireOnMatch(matched: RegExpExecArray): void {
+        this.mapNamedGroups(matched)
+        if (this.options.onMatch) {
+            return this.options.onMatch(this.parserContext.getCallbackData(matched) as TPorstoParserCallbackDataMatched<T>)
+        }
+    }
+
+    public fireBeforeChildParse(child: ProstoParserNodeContext) {
+        if (this.options.onBeforeChildParse) {
+            return this.options.onBeforeChildParse(child, this.parserContext.getCallbackData())
+        }
+    }
+
+    public fireAfterChildParse(child: ProstoParserNodeContext) {
+        if (!this.hasNodes.includes(child.node)) {
+            this.hasNodes.push(child.node)
+        }
+        this.count[child.node.id] = this.count[child.node.id] || 0
+        this.count[child.node.id]++
+        if (this.options.onAfterChildParse) {
+            return this.options.onAfterChildParse(child, this.parserContext.getCallbackData())
+        }
+    }
+
+    //
+    // Private  =======================================================================================
+    //
+
+    private processMappings() {
         this.parserContext.hoistManager.removeHoistOptions(this)
         this.parserContext.hoistManager.processHoistOptions(this)
         this.processMapContent()
     }
 
-    processMapContent() {
+    private processMapContent() {
         const targetNodeOptions = this.options
         if (targetNodeOptions.mapContent) {
             Object.keys(targetNodeOptions.mapContent).forEach((key: string) => {

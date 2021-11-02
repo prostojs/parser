@@ -1,4 +1,5 @@
 import { ProstoParserNode } from './model/node'
+import { ProstoParserNodeBase } from './model/node-base'
 import { ProstoParserNodeContext } from './model/node-context'
 import { ProstoParserContext } from './model/parser-context'
 
@@ -19,17 +20,17 @@ export interface TProstoParserNodeOptions<T extends TGenericCustomDataType = TDe
     popsAfterNode?: ProstoParserNode[]
     popsAtEOFSource?: boolean
     mergeWith?: TPorstoParseNodeMergeOptions[]
-    goodToken?: string | string[] | RegExp,
     badToken?: string | string[] | RegExp,
     skipToken?: string | string[] | RegExp,
     recognizes?: ProstoParserNode[]
     hoistChildren?: TProstoParserHoistOptions<T>[]
     mapContent?: { [key: string]: (content: ProstoParserNodeContext<T>['content']) => unknown }
-    onPop?: (data: TPorstoParserCallbackData<T>) => void
-    onMatch?: (data: TPorstoParserCallbackDataMatched<T>) => void
-    onAppendContent?: (s: string | ProstoParserNodeContext<T>['content'], data: TPorstoParserCallbackData<T>) => string | ProstoParserNodeContext<T>['content']
-    onBeforeChildParse?: (childContext: ProstoParserNodeContext, data: TPorstoParserCallbackData<T>) => void
-    onAfterChildParse?: (childContext: ProstoParserNodeContext, data: TPorstoParserCallbackData<T>) => void
+    onPop?: ((data: TPorstoParserCallbackData<T>) => void)
+    onMatch?: ((data: TPorstoParserCallbackDataMatched<T>) => void)
+    onAppendContent?: ((s: string | ProstoParserNodeContext<T>['content'], data: TPorstoParserCallbackData<T>) => string | ProstoParserNodeContext<T>['content'])
+    onBeforeChildParse?: ((childContext: ProstoParserNodeContext, data: TPorstoParserCallbackData<T>) => void)
+    onAfterChildParse?: ((childContext: ProstoParserNodeContext, data: TPorstoParserCallbackData<T>) => void)
+    initCustomData?: () => T
 }
 
 export interface TPorstoParseNodeMergeOptions {
@@ -38,16 +39,15 @@ export interface TPorstoParseNodeMergeOptions {
 }
 
 export interface TProstoParserTokenDescripor<T extends TGenericCustomDataType = TDefaultCustomDataType> {
-    token: string | string[] | RegExp
+    token: string | string[] | RegExp | ((context: ProstoParserNodeContext<T> | ProstoParserNode<T> | ProstoParserNodeBase<T>) => string | string[] | RegExp)
+    ignoreBackSlashed?: boolean
     omit?: boolean
     eject?: boolean
-    negativeLookBehind?: RegExp
-    negativeLookAhead?: RegExp
     onMatchToken?: (data: TPorstoParserCallbackDataMatched<T>) => boolean | { omit?: boolean, eject: boolean } | void
 }
 
 export interface TPorstoParserCallbackDataMatched<T extends TGenericCustomDataType = TDefaultCustomDataType> extends TPorstoParserCallbackData<T> {
-    matched: RegExpMatchArray | [string]
+    matched: RegExpExecArray | [string]
 }
 
 export interface TPorstoParserCallbackData<T extends TGenericCustomDataType = TDefaultCustomDataType> {
@@ -65,6 +65,13 @@ export interface TParseMatchResult {
     matched: boolean
     omit?: boolean
     eject?: boolean
+}
+
+export interface TSearchToken {
+    y: RegExp, // w/flag y
+    g: RegExp, // w/flag g
+    rg: RegExp,
+    node?: ProstoParserNode
 }
 
 export interface TGenericCustomDataType {

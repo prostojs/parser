@@ -1,12 +1,24 @@
-import { ProstoParserNode, TDefaultCustomDataType, TGenericCustomDataType, TProstoParserNodeOptions } from '..'
+import { ProstoParserNode, TDefaultCustomDataType, TGenericCustomDataType } from '..'
+
+export interface TInnerOptions {
+    label?: string
+    icon?: string
+    trim?: boolean
+}
 
 export class GenericXmlInnerNode<T extends TGenericCustomDataType = TDefaultCustomDataType> extends ProstoParserNode<T> {
-    constructor(options?: TProstoParserNodeOptions) {
+    constructor(options?: TInnerOptions) {
         super({
-            label: 'inner',
+            label: options?.label || '',
+            icon: options?.icon || '',
             startsWith: { token: '>', omit: true },
             endsWith: { token: '</', eject: true },
-            ...( options || {} ),
+            onAppendContent: options?.trim ? (s) => {
+                if (typeof s === 'string') {
+                    return s.trim().replace(/\n/g, ' ').replace(/\s+/, ' ')
+                }
+                return s
+            } : undefined,
         })
     }
 }

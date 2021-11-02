@@ -11,9 +11,8 @@ export class GenericXmlAttributeValue<T extends TGenericStringNodeCustomData> ex
         this.options.onMatch = ({ matched, customData, context }) => {
             customData.quote = matched[0][1]
             if (!customData.quote) {
-                const options = context.getOptions()
-                options.endsWith = {
-                    token: /^[\s\/>]/,
+                context.endsWith = {
+                    token: /[\s\/>]/,
                     eject: true,
                 }
             }

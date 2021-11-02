@@ -1,1 +1,1 @@
-export const negativeLookBehindEscapingSlash = /[^\\][\\](\\\\)*$/
+export const negativeLookBehindEscapingSlash = /[^\\][\\](\\\\)*/

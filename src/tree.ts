@@ -23,7 +23,7 @@ export const parserTree: ProstoTree<ProstoParserNodeContext | string | 0> = new 
             const data = context.getCustomData<Record<string, unknown>>()
             Object.keys(data).forEach(key => {
                 const val = data[key]
-                if (typeof val === 'string' || typeof val === 'number') {
+                if (typeof val === 'string') {
                     keys += ' ' + styles.valuesDim(key + '(') + styles.values(val.toString()) + styles.valuesDim(')')
                 } else if (Array.isArray(val)) {
                     keys += ' ' + styles.valuesDim(key + `[${ val.length }]`)

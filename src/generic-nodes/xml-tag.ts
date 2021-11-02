@@ -1,10 +1,12 @@
-import { ProstoParserNode, TProstoParserTokenDescripor } from '..'
+import { GenericNode } from '.'
+import { ProstoParserNode, ProstoParserNodeContext, TProstoParserTokenDescripor } from '..'
 import { escapeRegex } from '../utils'
 
 export type TGenericTagCustomData = {
     tag: string
     endTag: string | null
     isVoid: boolean
+    isText: boolean
 }
 
 const htmlVoidTags = [
@@ -26,23 +28,25 @@ const htmlVoidTags = [
     'wbr',
 ]
 
+const htmlTextTags = [
+    'script',
+    'style',
+]
+
 export interface TGenericXmlTagOptions {
     innerNode: ProstoParserNode,
     voidTags?: string[]
+    textTags?: string[]
     tag?: string
-}
-
-const voidEnd: TProstoParserTokenDescripor = {
-    token: /^\/?\>/,
-    omit: true,
 }
 
 export class GenericXmlTagNode<T extends TGenericTagCustomData> extends ProstoParserNode<T> {
     constructor(options: TGenericXmlTagOptions) {
         const voidTags = options?.voidTags || htmlVoidTags
-        let token: string | RegExp = /^<([\w:\-\.]+)/
+        const textTags = options?.textTags || htmlTextTags
+        let token: string | RegExp = /<(?<tag>[\w:\-\.]+)/
         if (options?.tag) {
-            token = `^<(${ escapeRegex(options.tag) })`
+            token = `<(?<tag>${ escapeRegex(options.tag) })[\s>]`
         }
         super({
             label: '',
@@ -51,32 +55,49 @@ export class GenericXmlTagNode<T extends TGenericTagCustomData> extends ProstoPa
                 omit: true,
             },
             icon: options?.tag || '<>',
-            onMatch({ matched, context, customData }) {
-                customData.tag = matched[1]
-                context.icon = matched[1]
-                if (voidTags.includes(matched[1])) {
+            onMatch({ context, customData }) {
+                context.icon = customData.tag
+                if (voidTags.includes(customData.tag)) {
                     // this is void tag
                     customData.isVoid = true
-                    context.getOptions().endsWith = voidEnd as TProstoParserTokenDescripor<T>
-                    context.getOptions().recognizes = context.getOptions().recognizes.filter(r => r !== options.innerNode)
+                    context.recognizes = context.recognizes.filter(r => r !== options.innerNode)
+                } else if (textTags.includes(customData.tag) && context.endsWith) {
+                    // this is text tag
+                    customData.isText = true
+                    context.recognizes = context.recognizes.filter(r => r !== options.innerNode)
                 }
             },
             endsWith: {
-                token: /^(?:\/\>|\<\/([\w:\-\.]+)\s*\>)/,
+                token: (context) => {
+                    const cd = (context as ProstoParserNodeContext<T>).getCustomData()
+                    if (cd.isVoid || cd.isText) {
+                        return /\/?\>/
+                    }
+                    return /(?:\/\>|\<\/(?<endTag>[\w:\-\.]+)\s*\>)/
+                },
                 omit: true,
-                onMatchToken: ({ matched, customData }) => {
-                    customData.endTag = matched[1]
-                    return true
+                onMatchToken: ({ matched, customData, context, parserContext }) => {
+                    if (customData.isText) {
+                        context.endsWith = {
+                            token: new RegExp(`<\\/(?<endTag>${ escapeRegex(customData.tag) })\\s*>`),
+                            omit: true,
+                        }
+                        context.clearRecognizes()
+                        context.clearSkipToken()
+                        context.clearBadToken()
+                        parserContext.jump(matched.length)
+                        return false
+                    }
                 },
             },
-            onAfterChildParse(childContext, { context }) {
+            onAfterChildParse(childContext) {
                 if (childContext.node === options.innerNode) {
                     // after inner we ain't going to have anything
                     // to parse in this node
-                    context.getOptions().recognizes = []
+                    childContext.recognizes = []
                 }
             },
-            // skipToken: /^\s+/,
+            skipToken: /\s/,
             badToken: /[^\s]/,
             onPop({ parserContext, customData }) {
                 if (

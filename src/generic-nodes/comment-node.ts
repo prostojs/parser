@@ -26,12 +26,13 @@ export class GenericCommentNode extends ProstoParserNode {
                 omit: true,
             },
             onAppendContent(s, { context, parserContext }) {
-                const options = context.getOptions()
-                if (typeof s === 'string' && !options.recognizes.length) {
+                if (typeof s === 'string' && !context.recognizes.length) {
                     // jump to the end
-                    const end = typeof options.endsWith?.token === 'string' ? parserContext.here.indexOf(options.endsWith.token) : -1
+                    const end = typeof context.endsWith?.token === 'string' ? parserContext.here.indexOf(context.endsWith.token) : -1
                     if (end >= 0) {
-                        return parserContext.here.slice(0, end)
+                        const newS = parserContext.here.slice(0, end)
+                        parserContext.jump(Math.max(newS.length - s.length, 0))
+                        return newS
                     }
                 }
                 return s

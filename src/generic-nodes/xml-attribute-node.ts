@@ -21,17 +21,17 @@ export class GenericXmlAttributeNode<T extends TGenericAttributeCustomData> exte
             startsWith: {
                 token: options?.prefix
                     ? new RegExp('^' + escapeRegex(options?.prefix) + '([\\w:\\-\\.]+)')
-                    : /^([\w:\-\.]+)/,
+                    : /([\w:\-\.]+)/,
                 omit: true,    
             },
             endsWith: {
-                token: /^[\s\n\/>]/,
+                token: /[\s\n\/>]/,
                 eject: true,
             },
             onMatch({ customData, matched }) {
                 customData.key = matched[1]
             },
-            goodToken: /^[\w:\-\.]/i,
+            badToken: /[^\w:\-\.]/,
             hoistChildren: options?.valueNode ? [
                 {
                     node: options?.valueNode,

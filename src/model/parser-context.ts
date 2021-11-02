@@ -1,9 +1,9 @@
-import { TParseMatchResult, TPorstoParserCallbackData, TPorstoParserCallbackDataMatched } from '../p.types'
+import { TPorstoParserCallbackData, TPorstoParserCallbackDataMatched } from '../p.types'
 import { renderCodeFragment } from '../console-utils'
 import { ProstoHoistManager } from './hoist-manager'
 import { ProstoParserNode } from './node'
 import { ProstoParserNodeContext } from './node-context'
-import { TGenericCustomDataType } from '..'
+import { TGenericCustomDataType, TSearchToken } from '..'
 
 const banner = __DYE_RED__ + '[parser]' + __DYE_COLOR_OFF__
 
@@ -36,57 +36,79 @@ export class ProstoParserContext {
         this.src = src,
         this.here = src,
         this.l = src.length
+        const cache: Record<string, RegExpExecArray | null> = {}
 
         while (this.pos < this.l) {
-            let matchedChild: ProstoParserNode | undefined
-            let matchedToken: string = ''
-            let matchResult: TParseMatchResult = {
-                rg: [''],
-                matched: false,
-            }
-            const options = this.context.getOptions()
-            for (let i = 0; i < options.recognizes.length; i++) {
-                const recognizeNode = options.recognizes[i]
-                matchResult = recognizeNode.startMatches(this.behind, this.here, this.getCallbackData()) 
-                if (matchResult.matched) {
-                    matchedChild = recognizeNode
-                    matchedToken = matchResult.rg[0]
-                    break
+            const searchTokens = this.context.getSearchTokens()
+            let closestIndex = Number.MAX_SAFE_INTEGER
+            let closestToken: TSearchToken | undefined
+            let matched: RegExpExecArray | undefined
+            for (const t of searchTokens) {
+                const key = t.g.source
+                t.g.lastIndex = this.pos
+                let cached = cache[key]
+                if (cached === null) continue
+                if (cached && cached.index < this.pos) {
+                    cached = null
+                    delete cache[key]
+                }
+                if (!cached) {
+                    cached = t.g.exec(this.src)
+                    if (cached || (this.pos === 0 && !cached)) {
+                        cache[key] = cached
+                    }
+                }
+                if (cached && cached.index < closestIndex) {
+                    closestIndex = cached.index
+                    matched = cached
+                    closestToken = t
+                    if (closestIndex === this.pos) break
                 }
             }
-            if (matchResult.matched && matchedChild) {
-                let toAppend = ''
-                if (matchResult.eject) {
-                    this.jump(this.context.appendContent(matchedToken))
-                } else if (matchResult.omit) {
+            if (closestToken && matched) {
+                const toAppend = this.src.slice(this.pos, closestIndex)
+                if (toAppend) {
+                    this.context.appendContent(toAppend)
+                    this.jump(toAppend.length)
+                }
+                const matchedToken = matched[0]
+                if (closestToken.node) {
+                    // matched child
+                    const { omit, eject, confirmed } = closestToken.node.fireNodeMatched(matched, this.getCallbackData(matched))
+                    if (!confirmed) continue
+                    let toAppend = ''
+                    if (eject) {
+                        this.context.appendContent(matchedToken)
+                    } else if (!omit) {
+                        toAppend = matchedToken
+                    }
                     this.jump(matchedToken.length)
+                    this.pushNewContext(closestToken.node, toAppend ? [toAppend] : [])
+                    this.context.fireOnMatch(matched)
+                    continue                    
                 } else {
-                    toAppend = matchedToken
-                    this.jump(matchedToken.length)
+                    // matched end token
+                    const { omit, eject, confirmed } = this.context.fireNodeEndMatched(matched, this.getCallbackData(matched))
+                    if (!confirmed) continue
+                    if (!eject && !omit) {
+                        this.context.appendContent(matchedToken)
+                    }
+                    if (!eject) {
+                        this.jump(matchedToken.length)
+                    }
+                    this.context.mapNamedGroups(matched)
+                    this.pop()
+                    continue
                 }
-                this.pushNewContext(matchedChild, toAppend ? [toAppend] : [])
-                matchedChild.onMatch(this.getCallbackData(matchResult.rg) as TPorstoParserCallbackDataMatched)
-                continue
+            } else {
+                // nothing matched
+                this.context.appendContent(this.here)
+                this.jump(this.here.length)
             }
-            matchResult = this.context.endMatches(this.behind, this.here, this.getCallbackData())
-            if (matchResult.matched) {
-                matchedToken = matchResult.rg[0]
-                if (matchResult.eject) {
-                    this.pop()
-                } else if (matchResult.omit) {
-                    this.jump(matchedToken.length)
-                    this.pop()
-                } else {
-                    this.jump(this.context.appendContent(matchedToken))
-                    this.pop()
-                }
-                continue
-            }
-            this.jump(this.context.appendContent(src[this.pos]))
         }
 
         if (this.context !== this.root) {
-            while (this.context.getOptions().popsAtEOFSource && this.stack.length > 0) this.pop()
+            while (this.context.popsAtEOFSource && this.stack.length > 0) this.pop()
         }
 
         if (this.context !== this.root) {
@@ -96,16 +118,16 @@ export class ProstoParserContext {
         return this.root
     }
 
-    pop() {
+    public pop() {
         const parentContext = this.stack.pop()
         this.context.onPop()
         if (parentContext) {
             this.context.appendOrMergeTo(parentContext)
-            parentContext.afterChildParse(this.context)
+            parentContext.fireAfterChildParse(this.context)
             this.context.cleanup()
             const node = this.context.node
             this.context = parentContext
-            if (parentContext.getPopsAfter().includes(node)) {
+            if (parentContext.popsAfterNode.includes(node)) {
                 this.pop()
             }
         } else {
@@ -113,29 +135,29 @@ export class ProstoParserContext {
         }   
     }
 
-    pushNewContext(newNode: ProstoParserNode, content: ProstoParserNodeContext['content']) {
+    public pushNewContext(newNode: ProstoParserNode, content: ProstoParserNodeContext['content']) {
         this.index++
         const ctx = newNode.createContext(this.index, this.stack.length + 1, this)
         ctx.content = content
-        this.context.beforeChildParse(ctx)
+        this.context.fireBeforeChildParse(ctx)
         this.context.content.push(ctx)
         this.stack.push(this.context)
         this.hoistManager.addHoistOptions(this.context)
         this.context = ctx
     }
 
-    fromStack(depth = 0) {
+    public fromStack(depth = 0) {
         return this.stack[this.stack.length - depth - 1]
     }
 
-    jump(n: number = 1): number {
+    public jump(n: number = 1): number {
         this.pos += n
         this.behind = this.src.slice(0, this.pos)
         this.here = this.src.slice(this.pos, this.l)
         return this.pos
     }
 
-    getCallbackData<T extends TGenericCustomDataType>(matched?: RegExpMatchArray): TPorstoParserCallbackData<T> | TPorstoParserCallbackDataMatched<T> {
+    public getCallbackData<T extends TGenericCustomDataType>(matched?: RegExpExecArray): TPorstoParserCallbackData<T> | TPorstoParserCallbackDataMatched<T> {
         return {
             parserContext: this,
             context: this.context as ProstoParserNodeContext<T>,
@@ -144,7 +166,7 @@ export class ProstoParserContext {
         }
     }
 
-    getPosition(offset = 0) {
+    public getPosition(offset = 0) {
         const past = this.src.slice(0, this.pos + offset).split('\n')
         const row = past.length
         const col = past.pop()?.length || 0
@@ -153,7 +175,7 @@ export class ProstoParserContext {
         }
     }
 
-    panic(message: string, errorBackOffset = 0) {
+    public panic(message: string, errorBackOffset = 0) {
         if (this.pos > 0) {
             const { row, col } = this.getPosition(-errorBackOffset)
             console.error(banner + __DYE_RED_BRIGHT__, message, __DYE_RESET__)
@@ -166,7 +188,7 @@ export class ProstoParserContext {
         throw new Error(message)
     }
 
-    panicBlock(message: string, topBackOffset = 0, bottomBackOffset = 0) {
+    public panicBlock(message: string, topBackOffset = 0, bottomBackOffset = 0) {
         if (this.pos > 0) {
             const { row, col } = this.getPosition(-bottomBackOffset)
             console.error(banner + __DYE_RED_BRIGHT__, message, __DYE_RESET__)

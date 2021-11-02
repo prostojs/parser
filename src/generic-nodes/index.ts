@@ -1,5 +1,5 @@
 export * from './comment-node'
-export * from './dummy-node'
+export * from './generic-node'
 export * from './root-node'
 export * from './string-node'
 export * from './xml-attribute-node'

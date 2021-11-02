@@ -1,17 +1,17 @@
 import { ProstoParserNode } from '..'
 
-interface TGenericDummyNodeOptions {
+interface TGenericNodeOptions {
     label?: string,
     icon?: string,
-    startToken: string,
-    endToken: string,
+    startToken: string | RegExp,
+    endToken: string | RegExp,
 }
 
-export class GenericDummyNode extends ProstoParserNode {
-    constructor(options: TGenericDummyNodeOptions) {
+export class GenericNode extends ProstoParserNode {
+    constructor(options: TGenericNodeOptions) {
         super({
             icon: options.icon || '·',
-            label: options.label || 'Dummy',
+            label: options.label || 'Node',
             startsWith: {
                 token: options.startToken,
                 omit: true,
