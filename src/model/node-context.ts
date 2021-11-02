@@ -178,13 +178,13 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         }
     }
 
-    public fireBeforeChildParse(child: ProstoParserNodeContext) {
+    public fireBeforeChildParse(child: ProstoParserNodeContext): void {
         if (this.options.onBeforeChildParse) {
             return this.options.onBeforeChildParse(child, this.parserContext.getCallbackData())
         }
     }
 
-    public fireAfterChildParse(child: ProstoParserNodeContext) {
+    public fireAfterChildParse(child: ProstoParserNodeContext): void {
         if (!this.hasNodes.includes(child.node)) {
             this.hasNodes.push(child.node)
         }

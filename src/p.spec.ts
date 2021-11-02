@@ -2,94 +2,64 @@ import { dye } from '@prostojs/dye'
 import { TProstoParserHoistOptions } from './p.types'
 import { GenericCommentNode, GenericNode, GenericRootNode, GenericStringNode, GenericXmlAttributeNode, GenericXmlAttributeValue, GenericXmlInnerNode, GenericXmlTagNode } from './generic-nodes'
 import { GenericStringExpressionNode } from './generic-nodes/string-expression-node'
-import { ProstoParserNode } from './model'
+import { GenericRecursiveNode } from './generic-nodes/recursive-node'
 
 describe('ProstoParser', () => {
     it('must parse URI pattern expression', () => {
-        const nodes = {
-            root: new GenericRootNode({ label: 'Static' }),
-            param: new ProstoParserNode({
-                label: 'Parameter',
-                startsWith: {
-                    token: ':',
-                    ignoreBackSlashed: true,
-                    omit: true,
-                },
-                endsWith: {
-                    token: ['/', '-'],
-                    eject: true,
-                },
-                mapContent: {
-                    key: (content) => content.shift(),
-                },
-                popsAtEOFSource: true,
-            }),
-            regex: new ProstoParserNode({
-                label: 'RegEx',
-                startsWith: {
-                    token: '(',
-                    ignoreBackSlashed: true,
-                },
-                endsWith: {
-                    token: ')',
-                    ignoreBackSlashed: true,
-                },
-                onMatch({ parserContext, context }) {
-                    if (parserContext.fromStack()?.node.id === nodes.regex.id) {
-                        if (!parserContext.here.startsWith('?:')) {
-                            context.content[0] += '?:'
-                        }
-                    } else {
-                        if (parserContext.here.startsWith('^')) {
-                            parserContext.jump(1)
-                        }
-                    }
-                },
-            }),
-            wildcard: new ProstoParserNode({
-                label: 'Wildcard',
-                startsWith: {
-                    token: '*',
-                },
-                endsWith: {
-                    token: /[^*\()]/,
-                    eject: true,
-                },
-                mapContent: {
-                    key: (content) => content.shift(),
-                },
-                popsAtEOFSource: true,
-            }),
-        }
+        const regexNode = new GenericRecursiveNode({
+            label: 'RegEx',
+            tokens: ['(', ')'],
+            backSlash: 'ignore-ignore',
+        }).onMatch(({ parserContext, context }) => {
+            if (parserContext.fromStack()?.node.id === context.node.id) {
+                if (!parserContext.here.startsWith('?:')) {
+                    context.content[0] += '?:'
+                }
+            } else {
+                if (parserContext.here.startsWith('^')) {
+                    parserContext.jump(1)
+                }
+            }
+        })
 
         const hoistRegex: TProstoParserHoistOptions = {
             as: 'regex',
-            node: nodes.regex,
+            node: regexNode,
             removeFromContent: true,
             deep: 1,
             map: ({ content }) => content.join(''),
         }
 
-        nodes.root.addRecognizes(nodes.param, nodes.wildcard)
+        const paramNode = new GenericNode({
+            label: 'Parameter',
+            tokens: [':', /[\/\-]/],
+            tokenOptions: 'omit-eject',
+            backSlash: 'ignore-',
+        }).mapContent('key', content => content.shift())
+            .popsAtEOFSource(true)
+            .addRecognizes(regexNode)
+            .addPopsAfterNode(regexNode)
+            .addHoistChildren(hoistRegex)
 
-        nodes.param.addRecognizes(nodes.regex)
-        nodes.param.addPopsAfterNode(nodes.regex)
-        nodes.param.addHoistChildren(hoistRegex)
+        const wildcardNode = new GenericNode({
+            label: 'Wildcard',
+            tokens: ['*', /[^*\()]/],
+            tokenOptions: '-eject',
+        })
+            .mapContent('key', content => content.shift())
+            .popsAtEOFSource(true)
+            .addRecognizes(regexNode)
+            .addPopsAfterNode(regexNode)
+            .addHoistChildren(hoistRegex)
 
-        nodes.wildcard.addRecognizes(nodes.regex)
-        nodes.wildcard.addPopsAfterNode(nodes.regex)
-        nodes.wildcard.addHoistChildren(hoistRegex)
+        const result = new GenericRootNode({ label: 'Static' })
+            .addRecognizes(paramNode, wildcardNode)
+            .parse('/test/:name1-:name2(a(?:test(inside))b)/*(d)/test/*/:ending')
 
-        nodes.regex.addRecognizes(nodes.regex)
-        nodes.regex.addMergeWith({ parent: nodes.regex, join: true })
-
-        const result = nodes.root.parse(
-            '/test/:name1-:name2(a(?:test(inside))b)/*(d)/test/*/:ending',
-        )
         const tree = result.toTree()
         console.log(tree)
         expect(dye.strip(tree)).toMatchInlineSnapshot(`
-"◦ Static
+"ROOT Static
 ├─ «/test/»
 ├─ ◦ Parameter key(name1)
 ├─ «-»
@@ -107,9 +77,9 @@ describe('ProstoParser', () => {
     it('must parse html', () => {
         const rootNode = new GenericXmlInnerNode({ trim: true, label: '', icon: 'ROOT' })
         const docTypeNode = new GenericNode({
-            startToken: '<!DOCTYPE ',
-            endToken: '>',
             label: 'Document Type',
+            tokens: ['<!DOCTYPE ', '>'],
+            tokenOptions: 'omit-omit',
         })
         const commentNode = new GenericCommentNode({
             block: true,

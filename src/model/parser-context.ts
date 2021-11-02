@@ -108,7 +108,7 @@ export class ProstoParserContext {
         }
 
         if (this.context !== this.root) {
-            while (this.context.popsAtEOFSource && this.stack.length > 0) this.pop()
+            while (this.context.getPopsAtEOFSource() && this.stack.length > 0) this.pop()
         }
 
         if (this.context !== this.root) {

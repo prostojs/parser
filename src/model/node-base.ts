@@ -1,3 +1,4 @@
+import { ProstoParserNodeContext } from '.'
 import { TDefaultCustomDataType, TGenericCustomDataType } from '..'
 import { TPorstoParseNodeMergeOptions, TPorstoParserCallbackData,
     TProstoParserNodeOptions, TProstoParserHoistOptions, TProstoParserTokenDescripor } from '../p.types'
@@ -18,6 +19,7 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
                 this.options.recognizes.push(node)
             }
         }
+        return this
     }
 
     public addPopsAfterNode(...args: ProstoParserNode[]) {
@@ -27,16 +29,19 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
                 this.options.popsAfterNode.push(node)
             }
         }
+        return this
     }
 
     public addMergeWith(...args: TPorstoParseNodeMergeOptions[]) {
         if (!this.options.mergeWith) this.options.mergeWith = []
         this.options.mergeWith.push(...args)
+        return this
     }
 
     public addHoistChildren(...args: TProstoParserHoistOptions<T>[]) {
         if (!this.options.hoistChildren) this.options.hoistChildren = []
         this.options.hoistChildren.push(...args)
+        return this
     }
 
     //
@@ -59,12 +64,13 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
         this.options.endsWith = value
     }
 
-    public get popsAtEOFSource() {
+    public getPopsAtEOFSource() {
         return this.options.popsAtEOFSource
     }
 
-    public set popsAtEOFSource(value: TProstoParserNodeOptions['popsAtEOFSource'] | undefined) {
+    public popsAtEOFSource(value: TProstoParserNodeOptions['popsAtEOFSource'] | undefined) {
         this.options.popsAtEOFSource = value
+        return this
     }
 
     public get mergeWith() {
@@ -107,12 +113,19 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
         this.options.hoistChildren = value
     }
 
-    public get mapContent() {
+    public getMapContent() {
         return this.options.mapContent
     }
 
-    public set mapContent(value: TProstoParserNodeOptions['mapContent'] | undefined) {
-        this.options.mapContent = value
+    public mapContent(key: string, value: (content: ProstoParserNodeContext<T>['content']) => unknown) {
+        this.options.mapContent = this.options.mapContent || {}
+        this.options.mapContent[key] = value
+        return this
+    }
+    
+    public onMatch(value: TProstoParserNodeOptions['onMatch'] | undefined) {
+        this.options.onMatch = value
+        return this
     }
 
     public get popsAfterNode() {
@@ -129,58 +142,72 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
 
     public clearStartsWith() {
         delete this.options.startsWith
+        return this
     }
     
     public clearEndsWith() {
         delete this.options.endsWith
+        return this
     }
     
     public clearPopsAtEOFSource() {
         delete this.options.popsAtEOFSource
+        return this
     }
     
     public clearMergeWith() {
         delete this.options.mergeWith
+        return this
     }
     
     public clearBadToken() {
         delete this.options.badToken
+        return this
     }
     
     public clearSkipToken() {
         delete this.options.skipToken
+        return this
     }
     
     public clearRecognizes() {
         delete this.options.recognizes
+        return this
     }
     
     public clearHoistChildren() {
         delete this.options.hoistChildren
+        return this
     }
     
     public clearMapContent() {
         delete this.options.mapContent
+        return this
     }
     
     public removeOnPop() {
         delete this.options.onPop
+        return this
     }
     
     public removeOnMatch() {
         delete this.options.onMatch
+        return this
     }
     
     public removeOnAppendContent() {
         delete this.options.onAppendContent
+        return this
     }
     
     public removeOnBeforeChildParse() {
         delete this.options.onBeforeChildParse
+        return this
     }
     
     public removeOnAfterChildParse() {
         delete this.options.onAfterChildParse
+        return this
     }
 
     //

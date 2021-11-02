@@ -56,10 +56,6 @@ export interface TPorstoParserCallbackData<T extends TGenericCustomDataType = TD
     customData: T
 }
 
-export interface TProstoParserNodeConstraits {
-
-}
-
 export interface TParseMatchResult {
     rg: RegExpMatchArray | [string]
     matched: boolean

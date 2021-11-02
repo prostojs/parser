@@ -1,5 +1,4 @@
-import { GenericNode } from '.'
-import { ProstoParserNode, ProstoParserNodeContext, TProstoParserTokenDescripor } from '..'
+import { ProstoParserNode, ProstoParserNodeContext } from '..'
 import { escapeRegex } from '../utils'
 
 export type TGenericTagCustomData = {
@@ -50,22 +49,12 @@ export class GenericXmlTagNode<T extends TGenericTagCustomData> extends ProstoPa
         }
         super({
             label: '',
+            icon: options?.tag || '<>',
+            skipToken: /\s/,
+            badToken: /[^\s]/,
             startsWith: {
                 token: token,
                 omit: true,
-            },
-            icon: options?.tag || '<>',
-            onMatch({ context, customData }) {
-                context.icon = customData.tag
-                if (voidTags.includes(customData.tag)) {
-                    // this is void tag
-                    customData.isVoid = true
-                    context.recognizes = context.recognizes.filter(r => r !== options.innerNode)
-                } else if (textTags.includes(customData.tag) && context.endsWith) {
-                    // this is text tag
-                    customData.isText = true
-                    context.recognizes = context.recognizes.filter(r => r !== options.innerNode)
-                }
             },
             endsWith: {
                 token: (context) => {
@@ -90,6 +79,18 @@ export class GenericXmlTagNode<T extends TGenericTagCustomData> extends ProstoPa
                     }
                 },
             },
+            onMatch({ context, customData }) {
+                context.icon = customData.tag
+                if (voidTags.includes(customData.tag)) {
+                    // this is void tag
+                    customData.isVoid = true
+                    context.recognizes = context.recognizes.filter(r => r !== options.innerNode)
+                } else if (textTags.includes(customData.tag) && context.endsWith) {
+                    // this is text tag
+                    customData.isText = true
+                    context.recognizes = context.recognizes.filter(r => r !== options.innerNode)
+                }
+            },
             onAfterChildParse(childContext) {
                 if (childContext.node === options.innerNode) {
                     // after inner we ain't going to have anything
@@ -97,8 +98,6 @@ export class GenericXmlTagNode<T extends TGenericTagCustomData> extends ProstoPa
                     childContext.recognizes = []
                 }
             },
-            skipToken: /\s/,
-            badToken: /[^\s]/,
             onPop({ parserContext, customData }) {
                 if (
                     !customData.isVoid &&
