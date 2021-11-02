@@ -6,17 +6,17 @@ type TBackSlashIgnore = 'ignore'
 export type TOmitEjectShortcut = '' | `${ TOmit | TEject | '' }-${ TOmit | TEject | '' }`
 export type TBackSlashShortcut = '' | `${ TBackSlashIgnore | '' }-${ TBackSlashIgnore | '' }`
 
-export interface TGenericNodeOptions {
+export interface TGenericNodeOptions<T extends TGenericCustomDataType = TDefaultCustomDataType> {
     label?: string,
     icon?: string,
-    tokens: [TProstoParserTokenDescripor['token'], TProstoParserTokenDescripor['token']]
+    tokens: [TProstoParserTokenDescripor<T>['token'], TProstoParserTokenDescripor<T>['token']]
     tokenOptions?: TOmitEjectShortcut
     backSlash?: TBackSlashShortcut
     initCustomData?: TProstoParserNodeOptions['initCustomData']
 }
 
 export class GenericNode<T extends TGenericCustomDataType = TDefaultCustomDataType> extends ProstoParserNode<T> {
-    constructor(options: TGenericNodeOptions) {
+    constructor(options: TGenericNodeOptions<T>) {
         const startsWith: TProstoParserTokenDescripor = { token: options.tokens[0] }
         const endsWith: TProstoParserTokenDescripor = { token: options.tokens[1] }
         const [startOption, endOption] = options.tokenOptions?.split('-') || []
@@ -26,10 +26,10 @@ export class GenericNode<T extends TGenericCustomDataType = TDefaultCustomDataTy
         endsWith.omit = endOption === 'omit'
         endsWith.eject = endOption === 'eject'
         startsWith.ignoreBackSlashed = startBSlash === 'ignore'
-        startsWith.ignoreBackSlashed = endBSlash === 'ignore'
+        endsWith.ignoreBackSlashed = endBSlash === 'ignore'
         super({
             icon: options.icon || '',
-            label: options.label || 'Node',
+            label: typeof options.label === 'string' ? options.label : 'Node',
             startsWith,
             endsWith,
         })

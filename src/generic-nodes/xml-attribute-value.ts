@@ -2,13 +2,13 @@ import { GenericStringNode, TGenericStringNodeCustomData } from './string-node'
 
 export class GenericXmlAttributeValue<T extends TGenericStringNodeCustomData> extends GenericStringNode<T> {
     constructor(allowUnquoted = false) {
-        super(['"', '`'], true)
+        super(['"', '`'], 'omit-omit')
         const token = ['="', '=\'']
         if (allowUnquoted) token.push('=')
-        if (this.options.startsWith) {
-            this.options.startsWith.token = token
+        if (this.startsWith) {
+            this.startsWith.token = token
         }
-        this.options.onMatch = ({ matched, customData, context }) => {
+        this.onMatch(({ matched, customData, context }) => {
             customData.quote = matched[0][1]
             if (!customData.quote) {
                 context.endsWith = {
@@ -16,6 +16,6 @@ export class GenericXmlAttributeValue<T extends TGenericStringNodeCustomData> ex
                     eject: true,
                 }
             }
-        }
+        })
     }
 }

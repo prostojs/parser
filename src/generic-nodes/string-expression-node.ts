@@ -1,31 +1,29 @@
+import { GenericNode } from './generic-node'
 import { ProstoParserNode } from '..'
 
 type TGenericStringExpressionCustomData = {
     expression: string
 }
 
-export class GenericStringExpressionNode<T extends TGenericStringExpressionCustomData> extends ProstoParserNode<T> {
+export class GenericStringExpressionNode<T extends TGenericStringExpressionCustomData> extends GenericNode<T> {
     constructor(stringNode?: ProstoParserNode, delimiters = ['{{', '}}']) {
         super({
             label: 'string',
             icon: '≈',
-            startsWith: {
-                token: delimiters[0],
-                omit: true,
-            },
-            endsWith: {
-                token: delimiters[1],
-                omit: true,
-            },
-            onPop({ context, customData }) {
-                customData.expression = context.content.join('')
-                context.content = []
-            },            
-            recognizes: stringNode ? [stringNode] : [],
+            tokens: [delimiters[0], delimiters[1]],
+            tokenOptions: 'omit-omit',
         })
-        stringNode?.addMergeWith({
-            parent: this,
-            join: true,
+        this.mapContent('expression', content => { 
+            const expression = content.join('')
+            content.splice(0, content.length)
+            return expression
         })
+        if (stringNode) {
+            this.addRecognizes(stringNode)
+            stringNode.addMergeWith({
+                parent: this,
+                join: true,
+            })
+        }
     }
 }

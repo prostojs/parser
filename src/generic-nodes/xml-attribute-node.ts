@@ -1,4 +1,5 @@
-import { ProstoParserNode, TProstoParserNodeOptions } from '..'
+import { GenericNode } from '.'
+import { ProstoParserNode } from '..'
 import { escapeRegex } from '../utils'
 
 type TGenericAttributeCustomData = {
@@ -10,45 +11,35 @@ interface TGenericXmlAttributeNodeOptions {
     valueNode: ProstoParserNode
     notNull?: boolean
     prefix?: string
-    options?: TProstoParserNodeOptions
 }
 
-export class GenericXmlAttributeNode<T extends TGenericAttributeCustomData> extends ProstoParserNode<T> {
+export class GenericXmlAttributeNode<T extends TGenericAttributeCustomData = TGenericAttributeCustomData> extends GenericNode<T> {
     constructor(options?: TGenericXmlAttributeNodeOptions) {
+        const startToken = options?.prefix
+            ? new RegExp(`(?<prefix>${ escapeRegex(options?.prefix) })(?<key>[\\w:\\-\\.]+)`)
+            : /(?<key>[\w:\-\.]+)/
         super({
             label: 'attribute',
             icon: '=',
-            startsWith: {
-                token: options?.prefix
-                    ? new RegExp('^' + escapeRegex(options?.prefix) + '([\\w:\\-\\.]+)')
-                    : /([\w:\-\.]+)/,
-                omit: true,    
-            },
-            endsWith: {
-                token: /[\s\n\/>]/,
-                eject: true,
-            },
-            onMatch({ customData, matched }) {
-                customData.key = matched[1]
-            },
-            badToken: /[^\w:\-\.]/,
-            hoistChildren: options?.valueNode ? [
-                {
-                    node: options?.valueNode,
-                    as: 'value',
-                    removeFromContent: true,
-                    deep: 1,
-                    map: ({ content }) => content.join(''),
-                },
-            ] : [],
-            onPop({ customData, parserContext }) {
-                if (options?.notNull && typeof customData.value === 'undefined') {
-                    parserContext.panic(`Interpolation attribute "${ customData.key }" must have value.`)
-                }
-            },
-            popsAfterNode: options?.valueNode ? [options?.valueNode] : [],
-            recognizes: options?.valueNode ? [options?.valueNode] : [],
-            ...(options || {}),
+            tokens: [startToken, /[\s\n\/>]/],
+            tokenOptions: 'omit-eject',
+        })
+        this.badToken = /[^\w:\-\.]/
+        if (options?.valueNode) {
+            this.addHoistChildren({
+                node: options?.valueNode,
+                as: 'value',
+                removeFromContent: true,
+                deep: 1,
+                map: ({ content }) => content.join(''),
+            })
+                .addPopsAfterNode(options.valueNode)
+                .addRecognizes(options.valueNode)
+        }
+        this.onPop(({ customData, parserContext }) => {
+            if (options?.notNull && typeof customData.value === 'undefined') {
+                parserContext.panic(`Interpolation attribute "${ customData.key }" must have value.`)
+            }
         })
     }
 }

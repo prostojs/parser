@@ -1,3 +1,4 @@
+import { GenericNode } from '.'
 import { ProstoParserNode, ProstoParserNodeContext } from '..'
 import { escapeRegex } from '../utils'
 
@@ -6,6 +7,7 @@ export type TGenericTagCustomData = {
     endTag: string | null
     isVoid: boolean
     isText: boolean
+    prefix?: string
 }
 
 const htmlVoidTags = [
@@ -37,72 +39,60 @@ export interface TGenericXmlTagOptions {
     voidTags?: string[]
     textTags?: string[]
     tag?: string
+    prefix?: string
 }
 
-export class GenericXmlTagNode<T extends TGenericTagCustomData> extends ProstoParserNode<T> {
+export class GenericXmlTagNode<T extends TGenericTagCustomData> extends GenericNode<T> {
     constructor(options: TGenericXmlTagOptions) {
         const voidTags = options?.voidTags || htmlVoidTags
         const textTags = options?.textTags || htmlTextTags
-        let token: string | RegExp = /<(?<tag>[\w:\-\.]+)/
+        const pre = options.prefix ? `(?<prefix>${ escapeRegex(options.prefix) })` : ''
+        let startToken: (string | RegExp) = new RegExp(`<${ pre }(?<tag>[\\w:\\-\\.]+)`)
         if (options?.tag) {
-            token = `<(?<tag>${ escapeRegex(options.tag) })[\s>]`
+            startToken = `<${ pre }(?<tag>${ escapeRegex(options.tag) })[\s>]`
         }
         super({
             label: '',
             icon: options?.tag || '<>',
-            skipToken: /\s/,
-            badToken: /[^\s]/,
-            startsWith: {
-                token: token,
-                omit: true,
-            },
-            endsWith: {
-                token: (context) => {
-                    const cd = (context as ProstoParserNodeContext<T>).getCustomData()
-                    if (cd.isVoid || cd.isText) {
-                        return /\/?\>/
-                    }
-                    return /(?:\/\>|\<\/(?<endTag>[\w:\-\.]+)\s*\>)/
-                },
-                omit: true,
-                onMatchToken: ({ matched, customData, context, parserContext }) => {
-                    if (customData.isText) {
-                        context.endsWith = {
-                            token: new RegExp(`<\\/(?<endTag>${ escapeRegex(customData.tag) })\\s*>`),
-                            omit: true,
-                        }
-                        context.clearRecognizes()
-                        context.clearSkipToken()
-                        context.clearBadToken()
-                        parserContext.jump(matched.length)
-                        return false
-                    }
-                },
-            },
-            onMatch({ context, customData }) {
-                context.icon = customData.tag
-                if (voidTags.includes(customData.tag)) {
-                    // this is void tag
-                    customData.isVoid = true
-                    context.recognizes = context.recognizes.filter(r => r !== options.innerNode)
-                } else if (textTags.includes(customData.tag) && context.endsWith) {
-                    // this is text tag
-                    customData.isText = true
-                    context.recognizes = context.recognizes.filter(r => r !== options.innerNode)
+            tokens: [
+                startToken,
+                ({ customData: { isVoid, isText } }) => (isVoid || isText) ? /\/?\>/ :/(?:\/\>|\<\/(?<endTag>[\w:\-\.]+)\s*\>)/,
+            ],
+            tokenOptions: 'omit-omit',
+        })
+
+        this.badToken = /[^\s]/
+        this.skipToken = /\s/
+
+        this.onMatchEndToken(({ matched, customData, context, parserContext }) => {
+            if (customData.isText) {
+                context.endsWith = {
+                    token: new RegExp(`<\\/(?<endTag>${ escapeRegex(customData.tag) })\\s*>`),
+                    omit: true,
                 }
-            },
-            onAfterChildParse(childContext) {
-                if (childContext.node === options.innerNode) {
-                    // after inner we ain't going to have anything
-                    // to parse in this node
-                    childContext.recognizes = []
-                }
-            },
-            onPop({ parserContext, customData }) {
+                context.clearRecognizes().clearSkipToken().clearBadToken()
+                parserContext.jump(matched.length)
+                // we're not goind to end parsing this node
+                // returning false
+                return false
+            }
+        }).onMatch(({ context, customData }) => {
+            context.icon = customData.tag
+            customData.isVoid = voidTags.includes(customData.tag)
+            customData.isText = textTags.includes(customData.tag)
+            if (customData.isVoid || customData.isText) {
+                // no need to parse inner in isText or isVoid cases
+                context.recognizes = context.recognizes.filter(r => r !== options.innerNode)
+            }
+        })
+        //                                                             after inner we ain't going to have anything
+        //                                                             to parse in this node
+            .onAfterChildParse((childContext) => childContext.node === options.innerNode ? childContext.clearRecognizes() : null)
+            .onPop(({ parserContext, customData }) => {
                 if (
                     !customData.isVoid &&
-                    typeof customData.endTag === 'string' &&
-                    customData.tag !== customData.endTag
+                typeof customData.endTag === 'string' &&
+                ((customData.prefix || '') + customData.tag) !== customData.endTag
                 ) {
                     parserContext.panicBlock(
                         `Open tag <${ customData.tag }> and closing tag </${ customData.endTag }> must be equal.`,
@@ -110,8 +100,6 @@ export class GenericXmlTagNode<T extends TGenericTagCustomData> extends ProstoPa
                         customData.endTag.length + 1,
                     )
                 }
-            },
-            recognizes: [options.innerNode],
-        })
+            }).addRecognizes(options.innerNode)
     }
 }

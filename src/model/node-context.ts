@@ -47,6 +47,10 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         return this._customData as unknown as T2
     }
 
+    public get customData() {
+        return this._customData
+    }
+
     public get nodeId() {
         return this._node.id
     }
@@ -113,14 +117,6 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         }
     }
 
-    public onPop() {
-        this.endPos = this.parserContext.getPosition()
-        this.processMappings()
-        if (this.options.onPop) {
-            this.options.onPop(this.parserContext.getCallbackData())
-        }
-    }
-
     public cleanup() {
         // cleaning up the copy of options
         // when we don't need it any longer
@@ -170,6 +166,14 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
     //
     // Fire Hooks Callbacks  =======================================================================================
     //
+
+    public fireOnPop() {
+        this.endPos = this.parserContext.getPosition()
+        this.processMappings()
+        if (this.options.onPop) {
+            this.options.onPop(this.parserContext.getCallbackData())
+        }
+    }
 
     public fireOnMatch(matched: RegExpExecArray): void {
         this.mapNamedGroups(matched)

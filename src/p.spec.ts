@@ -81,25 +81,29 @@ describe('ProstoParser', () => {
             tokens: ['<!DOCTYPE ', '>'],
             tokenOptions: 'omit-omit',
         })
+        const cDataNode = new GenericNode({
+            tokens: ['<![CDATA[', ']]>'],
+            label: '',
+            icon: '<![CDATA[',
+            tokenOptions: 'omit-omit',
+        })
         const commentNode = new GenericCommentNode({
             block: true,
             delimiters: ['<!--', '-->'],
         })
-        const cDataNode = new GenericCommentNode({
-            block: true,
-            delimiters: ['<![CDATA[', ']]>'],
-            options: { label: '', icon: '<![CDATA[' },
-        })
         const innerNode = new GenericXmlInnerNode({ trim: true, label: 'inner' })
         const tagNode = new GenericXmlTagNode({ innerNode })
+        const prefixedTagNode = new GenericXmlTagNode({ innerNode, prefix: 'p:'})
         const valueNode = new GenericXmlAttributeValue(true)
         const attrNode = new GenericXmlAttributeNode({ valueNode })
+        const prefixedAttrNode = new GenericXmlAttributeNode({ valueNode, prefix: 'v-' })
         const stringNode = new GenericStringNode()
         const expression = new GenericStringExpressionNode(stringNode)
         
-        rootNode.addRecognizes(docTypeNode, commentNode, tagNode, expression)
-        innerNode.addRecognizes(commentNode, cDataNode, tagNode, expression)
-        tagNode.addRecognizes(innerNode, attrNode)
+        rootNode.addRecognizes(docTypeNode, commentNode, prefixedTagNode, tagNode, expression)
+        innerNode.addRecognizes(commentNode, cDataNode, prefixedTagNode, tagNode, expression)
+        tagNode.addRecognizes(innerNode, prefixedAttrNode, attrNode)
+        prefixedTagNode.addRecognizes(innerNode, prefixedAttrNode, attrNode)
         cDataNode.addRecognizes(expression)
 
         const result = rootNode.parse(`<!DOCTYPE html>
@@ -128,6 +132,7 @@ describe('ProstoParser', () => {
             <script>
                 this is script <div> </div>
             </script>
+            <p:prefixed> </p:prefixed>
             <div 
                 dense="ab\\"de"
                 :data-id="d.id"
@@ -147,7 +152,7 @@ describe('ProstoParser', () => {
 
         expect(dye.strip(tree)).toMatchInlineSnapshot(`
 "ROOT
-├─ · Document Type
+├─ ◦ Document Type
 │  └─ «html»
 └─ html tag(html) endTag(html)
    └─ ◦ inner
@@ -170,22 +175,22 @@ describe('ProstoParser', () => {
             │  ├─ = attribute key(src) value(images/firefox-icon.png)
             │  └─ = attribute key(:alt) value('My test image ' + url)
             ├─ div tag(div) endTag(div)
-            │  ├─ = attribute key(v-for) value(item of items)
+            │  ├─ = attribute prefix(v-) key(for) value(item of items)
             │  └─ ◦ inner
             │     ├─ a tag(a)
             │     │  └─ = attribute key(:href) value(item)
             │     └─ ≈ string expression( item )
             ├─ span tag(span) endTag(span)
-            │  ├─ = attribute key(v-if) value(condition)
+            │  ├─ = attribute prefix(v-) key(if) value(condition)
             │  ├─ = attribute key(:class) value()
             │  └─ ◦ inner
             │     └─ «condition 1»
             ├─ span tag(span) endTag(span)
-            │  ├─ = attribute key(v-else-if) value(a === 5)
+            │  ├─ = attribute prefix(v-) key(else-if) value(a === 5)
             │  └─ ◦ inner
             │     └─ «condition 2»
             ├─ span tag(span) endTag(span)
-            │  ├─ = attribute key(v-else)
+            │  ├─ = attribute prefix(v-) key(else)
             │  └─ ◦ inner
             │     └─ «condition 3»
             ├─ div tag(div) endTag(div)
@@ -199,6 +204,8 @@ describe('ProstoParser', () => {
             │        └─ «>»
             ├─ script tag(script) isText☑ endTag(script)
             │  └─ «\\\\n                this is script <div> </div>\\\\n            »
+            ├─ prefixed prefix(p:) tag(prefixed) endTag(p:prefixed)
+            │  └─ ◦ inner
             └─ div tag(div) endTag(div)
                ├─ = attribute key(dense) value(ab\\\\\\"de)
                ├─ = attribute key(:data-id) value(d.id)

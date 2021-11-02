@@ -29,9 +29,9 @@ export const parserTree: ProstoTree<ProstoParserNodeContext | string | 0> = new 
                     keys += ' ' + styles.valuesDim(key + `[${ val.length }]`)
                 } else if (typeof val === 'object') {
                     keys += ' ' + styles.valuesDim(`{ ${ key } }`)
-                } else if (typeof val === 'boolean') {
+                } else if (typeof val === 'boolean' && val) {
                     const st = key ? styles.boolean : styles.booleanDim
-                    keys += ' ' + `${ styles.underscore(st(key)) }${ st(key ? '☑' : '☐') }`
+                    keys += ' ' + `${ styles.underscore(st(key)) }${ st(val ? '☑' : '☐') }`
                 }
             })
             return styles.node(context.icon + (context.label ? ' ' : '')) + styles.nodeDim(context.label) + keys

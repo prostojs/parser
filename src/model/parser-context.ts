@@ -120,7 +120,7 @@ export class ProstoParserContext {
 
     public pop() {
         const parentContext = this.stack.pop()
-        this.context.onPop()
+        this.context.fireOnPop()
         if (parentContext) {
             this.context.appendOrMergeTo(parentContext)
             parentContext.fireAfterChildParse(this.context)

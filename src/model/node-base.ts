@@ -123,8 +123,47 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
         return this
     }
     
-    public onMatch(value: TProstoParserNodeOptions['onMatch'] | undefined) {
+    public onMatch(value: TProstoParserNodeOptions<T>['onMatch'] | undefined) {
         this.options.onMatch = value
+        return this
+    }
+    
+    public onAppendContent(value: TProstoParserNodeOptions<T>['onAppendContent'] | undefined) {
+        this.options.onAppendContent = value
+        return this
+    }
+    
+    public onAfterChildParse(value: TProstoParserNodeOptions<T>['onAfterChildParse'] | undefined) {
+        this.options.onAfterChildParse = value
+        return this
+    }
+    
+    public onBeforeChildParse(value: TProstoParserNodeOptions<T>['onBeforeChildParse'] | undefined) {
+        this.options.onBeforeChildParse = value
+        return this
+    }
+    
+    public onMatchStartToken(value: TProstoParserTokenDescripor<T>['onMatchToken'] | undefined) {
+        if (this.options.startsWith) {
+            this.options.startsWith.onMatchToken = value
+        }
+        return this
+    }
+    
+    public onMatchEndToken(value: TProstoParserTokenDescripor<T>['onMatchToken'] | undefined) {
+        if (this.options.endsWith) {
+            this.options.endsWith.onMatchToken = value
+        }
+        return this
+    }
+    
+    public initCustomData(value: TProstoParserNodeOptions<T>['initCustomData'] | undefined) {
+        this.options.initCustomData = value
+        return this
+    }
+    
+    public onPop(value: TProstoParserNodeOptions<T>['onPop'] | undefined) {
+        this.options.onPop = value
         return this
     }
 
@@ -264,7 +303,7 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
             const prefix = descr.ignoreBackSlashed ? /(?<=[^\\](?:\\\\)*)/.source : ''
             let token: string | string[] | RegExp
             if (typeof descr.token === 'function') {
-                token = descr.token(this)
+                token = descr.token(this as unknown as ProstoParserNodeContext<T>)
             } else {
                 token = descr.token
             }

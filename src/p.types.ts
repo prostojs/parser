@@ -39,7 +39,7 @@ export interface TPorstoParseNodeMergeOptions {
 }
 
 export interface TProstoParserTokenDescripor<T extends TGenericCustomDataType = TDefaultCustomDataType> {
-    token: string | string[] | RegExp | ((context: ProstoParserNodeContext<T> | ProstoParserNode<T> | ProstoParserNodeBase<T>) => string | string[] | RegExp)
+    token: string | string[] | RegExp | ((context: ProstoParserNodeContext<T>) => string | string[] | RegExp)
     ignoreBackSlashed?: boolean
     omit?: boolean
     eject?: boolean
