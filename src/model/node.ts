@@ -1,3 +1,4 @@
+import { TDefaultCustomDataType, TGenericCustomDataType } from '..'
 import { TProstoParserNodeOptions } from '../p.types'
 import { ProstoParserNodeBase } from './node-base'
 import { ProstoParserNodeContext } from './node-context'
@@ -5,7 +6,7 @@ import { ProstoParserContext } from './parser-context'
 
 let idCounter = 0
 
-export class ProstoParserNode<T = any> extends ProstoParserNodeBase<T> {   
+export class ProstoParserNode<T extends TGenericCustomDataType = TDefaultCustomDataType> extends ProstoParserNodeBase<T> {   
     public readonly id: number
     
     public onMatch: Required<TProstoParserNodeOptions<T>>['onMatch']
@@ -40,8 +41,8 @@ export class ProstoParserNode<T = any> extends ProstoParserNodeBase<T> {
         }
     }
 
-    public createContext(index: number, level: number, rootContext?: ProstoParserContext): ProstoParserNodeContext {
-        return new ProstoParserNodeContext(this as unknown as ProstoParserNode, index, level, rootContext)
+    public createContext(index: number, level: number, rootContext?: ProstoParserContext): ProstoParserNodeContext<T> {
+        return new ProstoParserNodeContext(this, index, level, rootContext)
     }
 
     public get name() {

@@ -2,16 +2,16 @@ import { ProstoParserNode } from './model/node'
 import { ProstoParserNodeContext } from './model/node-context'
 import { ProstoParserContext } from './model/parser-context'
 
-export interface TProstoParserHoistOptions<T = any> {
+export interface TProstoParserHoistOptions<T extends TGenericCustomDataType = TDefaultCustomDataType> {
     node: ProstoParserNode,
     as: keyof T,
     asArray?: boolean,
     deep?: number | boolean
     removeFromContent?: boolean
-    map?: (ctx: ProstoParserNodeContext) => unknown
+    map?: (ctx: ProstoParserNodeContext<T>) => unknown
 }
 
-export interface TProstoParserNodeOptions<T = any> {
+export interface TProstoParserNodeOptions<T extends TGenericCustomDataType = TDefaultCustomDataType> {
     label?: string
     icon?: string
     startsWith?: TProstoParserTokenDescripor<T>
@@ -24,10 +24,10 @@ export interface TProstoParserNodeOptions<T = any> {
     skipToken?: string | string[] | RegExp,
     recognizes?: ProstoParserNode[]
     hoistChildren?: TProstoParserHoistOptions<T>[]
-    mapContent?: { [key: string]: (content: ProstoParserNodeContext['content']) => unknown }
+    mapContent?: { [key: string]: (content: ProstoParserNodeContext<T>['content']) => unknown }
     onPop?: (data: TPorstoParserCallbackData<T>) => void
     onMatch?: (data: TPorstoParserCallbackDataMatched<T>) => void
-    onAppendContent?: (s: string | ProstoParserNodeContext['content'], data: TPorstoParserCallbackData<T>) => string | ProstoParserNodeContext['content']
+    onAppendContent?: (s: string | ProstoParserNodeContext<T>['content'], data: TPorstoParserCallbackData<T>) => string | ProstoParserNodeContext<T>['content']
     onBeforeChildParse?: (childContext: ProstoParserNodeContext, data: TPorstoParserCallbackData<T>) => void
     onAfterChildParse?: (childContext: ProstoParserNodeContext, data: TPorstoParserCallbackData<T>) => void
 }
@@ -37,7 +37,7 @@ export interface TPorstoParseNodeMergeOptions {
     join?: boolean
 }
 
-export interface TProstoParserTokenDescripor<T = any> {
+export interface TProstoParserTokenDescripor<T extends TGenericCustomDataType = TDefaultCustomDataType> {
     token: string | string[] | RegExp
     omit?: boolean
     eject?: boolean
@@ -46,11 +46,11 @@ export interface TProstoParserTokenDescripor<T = any> {
     onMatchToken?: (data: TPorstoParserCallbackDataMatched<T>) => boolean | { omit?: boolean, eject: boolean } | void
 }
 
-export interface TPorstoParserCallbackDataMatched<T = any> extends TPorstoParserCallbackData<T> {
+export interface TPorstoParserCallbackDataMatched<T extends TGenericCustomDataType = TDefaultCustomDataType> extends TPorstoParserCallbackData<T> {
     matched: RegExpMatchArray | [string]
 }
 
-export interface TPorstoParserCallbackData<T = any> {
+export interface TPorstoParserCallbackData<T extends TGenericCustomDataType = TDefaultCustomDataType> {
     parserContext: ProstoParserContext
     context: ProstoParserNodeContext<T>
     customData: T
@@ -66,3 +66,10 @@ export interface TParseMatchResult {
     omit?: boolean
     eject?: boolean
 }
+
+export interface TGenericCustomDataType {
+    [key: string]: unknown
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type TDefaultCustomDataType = any // this can really be any, can't it?

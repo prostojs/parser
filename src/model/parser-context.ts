@@ -3,6 +3,7 @@ import { renderCodeFragment } from '../console-utils'
 import { ProstoHoistManager } from './hoist-manager'
 import { ProstoParserNode } from './node'
 import { ProstoParserNodeContext } from './node-context'
+import { TGenericCustomDataType } from '..'
 
 const banner = __DYE_RED__ + '[parser]' + __DYE_COLOR_OFF__
 
@@ -134,7 +135,7 @@ export class ProstoParserContext {
         return this.pos
     }
 
-    getCallbackData<T = Record<string, unknown>>(matched?: RegExpMatchArray): TPorstoParserCallbackData<T> | TPorstoParserCallbackDataMatched<T> {
+    getCallbackData<T extends TGenericCustomDataType>(matched?: RegExpMatchArray): TPorstoParserCallbackData<T> | TPorstoParserCallbackDataMatched<T> {
         return {
             parserContext: this,
             context: this.context as ProstoParserNodeContext<T>,

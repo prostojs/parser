@@ -1,6 +1,6 @@
 import { ProstoParserNode } from '..'
 
-interface TGenericStringExpressionCustomData {
+type TGenericStringExpressionCustomData = {
     expression: string
 }
 

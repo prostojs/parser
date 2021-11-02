@@ -3,8 +3,9 @@ import { ProstoParserNode } from './node'
 import { ProstoParserNodeBase } from './node-base'
 import { ProstoParserContext } from './parser-context'
 import { parserTree } from '../tree'
+import { TDefaultCustomDataType, TGenericCustomDataType } from '..'
 
-export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
+export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefaultCustomDataType> extends ProstoParserNodeBase<T> {
     public content: (string | ProstoParserNodeContext | 0)[] = []
 
     protected readonly _customData: T = {} as T
@@ -35,7 +36,7 @@ export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
         this.endPos = this.parserContext.getPosition()
     }
 
-    public getCustomData<T2 = T>() {
+    public getCustomData<T2 extends TGenericCustomDataType = T>() {
         return this._customData as unknown as T2
     }
 
@@ -63,7 +64,7 @@ export class ProstoParserNodeContext<T = any> extends ProstoParserNodeBase<T> {
         }
     }
 
-    appendContent(input: string | ProstoParserNodeContext['content']): number {
+    appendContent(input: string | ProstoParserNodeContext<T>['content']): number {
         let s = input
         let jumpLen = 1
         this.endPos = this.parserContext.getPosition()

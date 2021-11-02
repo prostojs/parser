@@ -1,7 +1,7 @@
 import { ProstoParserNode, TProstoParserNodeOptions } from '..'
 import { escapeRegex } from '../utils'
 
-interface TAttributeCustomData {
+type TGenericAttributeCustomData = {
     key: string
     value: string
 }
@@ -13,7 +13,7 @@ interface TGenericXmlAttributeNodeOptions {
     options?: TProstoParserNodeOptions
 }
 
-export class GenericXmlAttributeNode<T extends TAttributeCustomData> extends ProstoParserNode<T> {
+export class GenericXmlAttributeNode<T extends TGenericAttributeCustomData> extends ProstoParserNode<T> {
     constructor(options?: TGenericXmlAttributeNodeOptions) {
         super({
             label: 'attribute',

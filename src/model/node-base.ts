@@ -1,8 +1,9 @@
+import { TDefaultCustomDataType, TGenericCustomDataType } from '..'
 import { TParseMatchResult, TPorstoParseNodeMergeOptions, TPorstoParserCallbackData,
     TProstoParserNodeOptions, TProstoParserHoistOptions, TProstoParserTokenDescripor } from '../p.types'
 import { ProstoParserNode } from './node'
 
-export abstract class ProstoParserNodeBase<T = any> {
+export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TDefaultCustomDataType> {
     protected abstract readonly options: TProstoParserNodeOptions<T>
     
     public addRecognizableNode(...args: ProstoParserNode[]) {
@@ -59,7 +60,7 @@ export abstract class ProstoParserNodeBase<T = any> {
 
     skipMatches(behind: string, here: string): RegExpMatchArray | undefined {
         if (this.options.skipToken) {
-            return lookFor(behind, here, {
+            return this.lookFor(behind, here, {
                 token: this.options.skipToken,
             }) || undefined
         }
@@ -67,7 +68,7 @@ export abstract class ProstoParserNodeBase<T = any> {
 
     goodMatches(behind: string, here: string): RegExpMatchArray | undefined {
         if (this.options.goodToken) {
-            return lookFor(behind, here, {
+            return this.lookFor(behind, here, {
                 token: this.options.goodToken,
             }) || undefined
         }
@@ -76,15 +77,35 @@ export abstract class ProstoParserNodeBase<T = any> {
 
     badMatches(behind: string, here: string): RegExpMatchArray | undefined {
         if (this.options.badToken) {
-            return lookFor(behind, here, {
+            return this.lookFor(behind, here, {
                 token: this.options.badToken,
             }) || undefined
         }
     }
 
-    protected matches(behind: string, here: string, descr: TProstoParserTokenDescripor | undefined, cbData: TPorstoParserCallbackData): TParseMatchResult {
+    private lookFor(behind: string, here: string, tokenDescriptor: TProstoParserTokenDescripor<T>): RegExpMatchArray | undefined {
+        const { token, negativeLookBehind, negativeLookAhead } = tokenDescriptor
+        if ((!negativeLookBehind || !behind.match(negativeLookBehind)) && (!negativeLookAhead || !here.slice(1).match(negativeLookAhead))) {
+            if (typeof token === 'string' || Array.isArray(token)) {
+                const arrayOfTokens = (typeof token === 'string' ? [token] : token)
+                for (let j = 0; j < arrayOfTokens.length; j++) {
+                    const startsWithToken = arrayOfTokens[j]
+                    if (here.startsWith(startsWithToken)) {
+                        return [startsWithToken]
+                    }
+                }
+            } else if (token) {
+                const match = here.match(token)
+                if (match) {
+                    return match
+                }
+            }
+        }
+    }
+    
+    protected matches(behind: string, here: string, descr: TProstoParserTokenDescripor<T> | undefined, cbData: TPorstoParserCallbackData<T>): TParseMatchResult {
         if (descr) {
-            const rg = lookFor(behind, here, descr) || undefined
+            const rg = this.lookFor(behind, here, descr) || undefined
             if (rg) {
                 const { omit, eject, onMatchToken } = descr
                 let cbResult: boolean | { omit?: boolean, eject: boolean } | void = true
@@ -111,26 +132,6 @@ export abstract class ProstoParserNodeBase<T = any> {
         return {
             rg: [''],
             matched: false,
-        }
-    }
-}
-
-function lookFor(behind: string, here: string, tokenDescriptor: TProstoParserTokenDescripor): RegExpMatchArray | undefined {
-    const { token, negativeLookBehind, negativeLookAhead } = tokenDescriptor
-    if ((!negativeLookBehind || !behind.match(negativeLookBehind)) && (!negativeLookAhead || !here.slice(1).match(negativeLookAhead))) {
-        if (typeof token === 'string' || Array.isArray(token)) {
-            const arrayOfTokens = (typeof token === 'string' ? [token] : token)
-            for (let j = 0; j < arrayOfTokens.length; j++) {
-                const startsWithToken = arrayOfTokens[j]
-                if (here.startsWith(startsWithToken)) {
-                    return [startsWithToken]
-                }
-            }
-        } else if (token) {
-            const match = here.match(token)
-            if (match) {
-                return match
-            }
         }
     }
 }

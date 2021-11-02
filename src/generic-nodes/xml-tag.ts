@@ -1,7 +1,7 @@
 import { ProstoParserNode, TProstoParserTokenDescripor } from '..'
 import { escapeRegex } from '../utils'
 
-interface TTagCustomData {
+export type TGenericTagCustomData = {
     tag: string
     endTag: string | null
     isVoid: boolean
@@ -26,18 +26,18 @@ const htmlVoidTags = [
     'wbr',
 ]
 
-interface TGenericXmlTagOptions {
+export interface TGenericXmlTagOptions {
     innerNode: ProstoParserNode,
     voidTags?: string[]
     tag?: string
 }
 
-const voidEnd: TProstoParserTokenDescripor<unknown> = {
+const voidEnd: TProstoParserTokenDescripor = {
     token: /^\/?\>/,
     omit: true,
 }
 
-export class GenericXmlTagNode<T extends TTagCustomData> extends ProstoParserNode<T> {
+export class GenericXmlTagNode<T extends TGenericTagCustomData> extends ProstoParserNode<T> {
     constructor(options: TGenericXmlTagOptions) {
         const voidTags = options?.voidTags || htmlVoidTags
         let token: string | RegExp = /^<([\w:\-\.]+)/

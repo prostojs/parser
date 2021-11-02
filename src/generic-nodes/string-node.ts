@@ -1,7 +1,7 @@
 import { ProstoParserNode } from '..'
 import { negativeLookBehindEscapingSlash } from '../constants'
 
-export interface TGenericStringNodeCustomData {
+export type TGenericStringNodeCustomData = {
     quote: string
 }
 

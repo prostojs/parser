@@ -1,6 +1,6 @@
-import { ProstoParserNode, TProstoParserNodeOptions } from '..'
+import { ProstoParserNode, TDefaultCustomDataType, TGenericCustomDataType, TProstoParserNodeOptions } from '..'
 
-export class GenericXmlInnerNode<T = unknown> extends ProstoParserNode<T> {
+export class GenericXmlInnerNode<T extends TGenericCustomDataType = TDefaultCustomDataType> extends ProstoParserNode<T> {
     constructor(options?: TProstoParserNodeOptions) {
         super({
             label: 'inner',
