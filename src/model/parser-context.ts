@@ -179,7 +179,7 @@ export class ProstoParserContext {
         if (this.pos > 0) {
             const { row, col } = this.getPosition(-errorBackOffset)
             console.error(banner + __DYE_RED_BRIGHT__, message, __DYE_RESET__)
-            console.error(this.context.toTree())
+            console.log(this.context.toTree({ childrenLimit: 5, showLast: true, level: 1 }))
             console.error(renderCodeFragment(this.src.split('\n'), {
                 row: row,
                 error: col,
@@ -192,7 +192,7 @@ export class ProstoParserContext {
         if (this.pos > 0) {
             const { row, col } = this.getPosition(-bottomBackOffset)
             console.error(banner + __DYE_RED_BRIGHT__, message, __DYE_RESET__)
-            console.error(this.context.toTree())
+            console.log(this.context.toTree({ childrenLimit: 3, showLast: true, level: 2 }))
             console.error(renderCodeFragment(this.src.split('\n'), {
                 row: this.context.startPos.row,
                 error: this.context.startPos.col - topBackOffset,
@@ -203,3 +203,4 @@ export class ProstoParserContext {
         throw new Error(message)
     }
 }
+

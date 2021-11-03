@@ -38,7 +38,7 @@
     ]
   },
   "dependencies": {
-    "@prostojs/tree": "^0.2.0"
+    "@prostojs/tree": "^0.2.2"
   },
   "gitHooks": {
     "commit-msg": "node scripts/verifyCommit.js"

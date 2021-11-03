@@ -4,6 +4,7 @@ import { ProstoParserNodeBase } from './node-base'
 import { ProstoParserContext } from './parser-context'
 import { parserTree } from '../tree'
 import { TDefaultCustomDataType, TGenericCustomDataType, TPorstoParserCallbackDataMatched, TSearchToken } from '..'
+import { TProstoTreeRenderOptions } from '@prostojs/tree'
 
 export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefaultCustomDataType> extends ProstoParserNodeBase<T> {
     public content: (string | ProstoParserNodeContext)[] = []
@@ -59,8 +60,8 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         return this._node
     }
 
-    public toTree(): string { 
-        return parserTree.render(this)
+    public toTree(options?: TProstoTreeRenderOptions): string { 
+        return parserTree.render(this, options)
     }
 
     public getSearchTokens(): TSearchToken[] {
