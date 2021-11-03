@@ -1,3 +1,12 @@
+## [0.4.1](https://github.com/prostojs/parser/compare/v0.4.0...v0.4.1) (2021-11-03)
+
+
+### Bug Fixes
+
+* add generic-nodes export ([354c2bf](https://github.com/prostojs/parser/commit/354c2bf783a2d688cdd027945de0e17c80d6c622))
+
+
+
 # [0.4.0](https://github.com/prostojs/parser/compare/v0.3.4...v0.4.0) (2021-11-03)
 
 
