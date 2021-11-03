@@ -3,10 +3,10 @@ import { ProstoParserNode } from '..'
 import { escapeRegex } from '../utils'
 
 export interface TGenericTagCustomData {
-    tag: string
-    endTag: string | null
-    isVoid: boolean
-    isText: boolean
+    tag?: string
+    endTag?: string | null
+    isVoid?: boolean
+    isText?: boolean
     prefix?: string
 }
 
@@ -67,7 +67,7 @@ export class GenericXmlTagNode<T extends TGenericTagCustomData = TGenericTagCust
         this.onMatchEndToken(({ matched, customData, context, parserContext }) => {
             if (customData.isText) {
                 context.endsWith = {
-                    token: new RegExp(`<\\/(?<endTag>${ escapeRegex(customData.tag) })\\s*>`),
+                    token: new RegExp(`<\\/(?<endTag>${ escapeRegex(customData.tag || '') })\\s*>`),
                     omit: true,
                 }
                 context.clearRecognizes().clearSkipToken().clearBadToken()
@@ -77,9 +77,9 @@ export class GenericXmlTagNode<T extends TGenericTagCustomData = TGenericTagCust
                 return false
             }
         }).onMatch(({ context, customData }) => {
-            context.icon = customData.tag
-            customData.isVoid = voidTags.includes(customData.tag)
-            customData.isText = textTags.includes(customData.tag)
+            context.icon = customData.tag || ''
+            customData.isVoid = voidTags.includes(customData.tag || '')
+            customData.isText = textTags.includes(customData.tag || '')
             if (customData.isVoid || customData.isText) {
                 // no need to parse inner in isText or isVoid cases
                 context.recognizes = context.recognizes.filter(r => r !== options.innerNode)
@@ -92,11 +92,11 @@ export class GenericXmlTagNode<T extends TGenericTagCustomData = TGenericTagCust
                 if (
                     !customData.isVoid &&
                 typeof customData.endTag === 'string' &&
-                ((customData.prefix || '') + customData.tag) !== customData.endTag
+                ((customData.prefix || '') + (customData.tag || '')) !== customData.endTag
                 ) {
                     parserContext.panicBlock(
-                        `Open tag <${ customData.tag }> and closing tag </${ customData.endTag }> must be equal.`,
-                        customData.tag.length,
+                        `Open tag <${ customData.tag || '' }> and closing tag </${ customData.endTag }> must be equal.`,
+                        customData.tag?.length || 0,
                         customData.endTag.length + 1,
                     )
                 }

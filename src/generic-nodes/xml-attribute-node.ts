@@ -4,7 +4,7 @@ import { escapeRegex } from '../utils'
 
 type TGenericAttributeCustomData = {
     key: string
-    value: string
+    value?: string
 }
 
 interface TGenericXmlAttributeNodeOptions {

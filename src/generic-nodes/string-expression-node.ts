@@ -1,8 +1,8 @@
 import { GenericNode } from './generic-node'
 import { ProstoParserNode } from '..'
 
-type TGenericStringExpressionCustomData = {
-    expression: string
+export interface TGenericStringExpressionCustomData {
+    expression?: string
 }
 
 export class GenericStringExpressionNode<T extends TGenericStringExpressionCustomData> extends GenericNode<T> {
