@@ -1,3 +1,12 @@
+## [0.4.6](https://github.com/prostojs/parser/compare/v0.4.5...v0.4.6) (2021-11-03)
+
+
+### Features
+
+* add mapRule to hoistOptions ([7509c67](https://github.com/prostojs/parser/commit/7509c676f91ceba0deedc784179a248babab7862))
+
+
+
 ## [0.4.5](https://github.com/prostojs/parser/compare/v0.4.4...v0.4.5) (2021-11-03)
 
 
