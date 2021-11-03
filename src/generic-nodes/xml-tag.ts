@@ -1,5 +1,5 @@
 import { GenericNode } from '.'
-import { ProstoParserNode, ProstoParserNodeContext } from '..'
+import { ProstoParserNode } from '..'
 import { escapeRegex } from '../utils'
 
 export type TGenericTagCustomData = {

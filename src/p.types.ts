@@ -1,5 +1,4 @@
 import { ProstoParserNode } from './model/node'
-import { ProstoParserNodeBase } from './model/node-base'
 import { ProstoParserNodeContext } from './model/node-context'
 import { ProstoParserContext } from './model/parser-context'
 
