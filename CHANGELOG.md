@@ -1,3 +1,12 @@
+## [0.4.10](https://github.com/prostojs/parser/compare/v0.4.9...v0.4.10) (2021-11-03)
+
+
+### Features
+
+* add string cutoff on tree output ([8c0a1cc](https://github.com/prostojs/parser/commit/8c0a1cc6a1e77fe9afb58c9616dbbe2c227839d4))
+
+
+
 ## [0.4.9](https://github.com/prostojs/parser/compare/v0.4.8...v0.4.9) (2021-11-03)
 
 
