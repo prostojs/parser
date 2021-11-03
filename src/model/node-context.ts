@@ -3,7 +3,7 @@ import { ProstoParserNode } from './node'
 import { ProstoParserNodeBase } from './node-base'
 import { ProstoParserContext } from './parser-context'
 import { parserTree } from '../tree'
-import { TDefaultCustomDataType, TGenericCustomDataType, TPorstoParserCallbackDataMatched, TSearchToken } from '..'
+import { TDefaultCustomDataType, TGenericCustomDataType, TPorstoParserCallbackData, TPorstoParserCallbackDataMatched, TSearchToken } from '..'
 import { TProstoTreeRenderOptions } from '@prostojs/tree'
 
 export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefaultCustomDataType> extends ProstoParserNodeBase<T> {
@@ -122,9 +122,7 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
                 }
             }
         }
-        if (this.options.onAppendContent) {
-            s = this.options.onAppendContent(s, this.parserContext.getCallbackData())
-        }
+        s = this.fireOnAppendContent(s)
         if (s) {
             if (typeof s === 'string') {
                 this.content.push(s)
@@ -187,21 +185,27 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
     public fireOnPop() {
         this.endPos = this.parserContext.getPosition()
         this.processMappings()
+        const data: TPorstoParserCallbackData<T> = this.parserContext.getCallbackData()
+        this.node.beforeOnPop(data)
         if (this.options.onPop) {
-            this.options.onPop(this.parserContext.getCallbackData())
+            this.options.onPop(data)
         }
     }
 
     public fireOnMatch(matched: RegExpExecArray): void {
         this.mapNamedGroups(matched)
+        const data: TPorstoParserCallbackDataMatched<T> = this.parserContext.getCallbackData(matched) as TPorstoParserCallbackDataMatched<T>
+        this.node.beforeOnMatch(data)
         if (this.options.onMatch) {
-            return this.options.onMatch(this.parserContext.getCallbackData(matched) as TPorstoParserCallbackDataMatched<T>)
+            return this.options.onMatch(data)
         }
     }
 
     public fireBeforeChildParse(child: ProstoParserNodeContext): void {
+        const data: TPorstoParserCallbackData<T> = this.parserContext.getCallbackData()
+        this.node.beforeOnBeforeChildParse(child, data)
         if (this.options.onBeforeChildParse) {
-            return this.options.onBeforeChildParse(child, this.parserContext.getCallbackData())
+            return this.options.onBeforeChildParse(child, data)
         }
     }
 
@@ -211,9 +215,21 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         }
         this.count[child.node.id] = this.count[child.node.id] || 0
         this.count[child.node.id]++
+        const data: TPorstoParserCallbackData<T> = this.parserContext.getCallbackData()
+        this.node.beforeOnAfterChildParse(child, data)
         if (this.options.onAfterChildParse) {
-            return this.options.onAfterChildParse(child, this.parserContext.getCallbackData())
+            return this.options.onAfterChildParse(child, data)
         }
+    }
+
+    public fireOnAppendContent(s: string | ProstoParserNodeContext<T>['content']): string | ProstoParserNodeContext<T>['content'] {
+        let _s = s
+        const data: TPorstoParserCallbackData<T> = this.parserContext.getCallbackData()
+        _s = this.node.beforeOnAppendContent(_s, data)
+        if (this.options.onAppendContent) {
+            _s = this.options.onAppendContent(_s, data)
+        }
+        return _s
     }
 
     //

@@ -1,5 +1,5 @@
 import { GenericNode } from '.'
-import { ProstoParserNode } from '..'
+import { ProstoParserNode, ProstoParserNodeContext, TPorstoParserCallbackData, TPorstoParserCallbackDataMatched } from '..'
 import { escapeRegex } from '../utils'
 
 export interface TGenericTagCustomData {
@@ -43,23 +43,31 @@ export interface TGenericXmlTagOptions {
 }
 
 export class GenericXmlTagNode<T extends TGenericTagCustomData = TGenericTagCustomData> extends GenericNode<T> {
-    constructor(options: TGenericXmlTagOptions) {
-        const voidTags = options?.voidTags || htmlVoidTags
-        const textTags = options?.textTags || htmlTextTags
-        const pre = options.prefix ? `(?<prefix>${ escapeRegex(options.prefix) })` : ''
+    private voidTags: string[]
+
+    private textTags: string[]
+
+    private tagOptions: TGenericXmlTagOptions
+
+    constructor(tagOptions: TGenericXmlTagOptions) {
+        const pre = tagOptions.prefix ? `(?<prefix>${ escapeRegex(tagOptions.prefix) })` : ''
         let startToken: (string | RegExp) = new RegExp(`<${ pre }(?<tag>[\\w:\\-\\.]+)`)
-        if (options?.tag) {
-            startToken = `<${ pre }(?<tag>${ escapeRegex(options.tag) })[\s>]`
+        if (tagOptions?.tag) {
+            startToken = `<${ pre }(?<tag>${ escapeRegex(tagOptions.tag) })[\s>]`
         }
         super({
             label: '',
-            icon: options?.tag || '<>',
+            icon: tagOptions?.tag || '<>',
             tokens: [
                 startToken,
                 ({ customData: { isVoid, isText } }) => (isVoid || isText) ? /\/?\>/ :/(?:\/\>|\<\/(?<endTag>[\w:\-\.]+)\s*\>)/,
             ],
             tokenOptions: 'omit-omit',
         })
+
+        this.tagOptions = tagOptions
+        this.voidTags = tagOptions?.voidTags || htmlVoidTags
+        this.textTags = tagOptions?.textTags || htmlTextTags
 
         this.badToken = /[^\s]/
         this.skipToken = /\s/
@@ -76,30 +84,40 @@ export class GenericXmlTagNode<T extends TGenericTagCustomData = TGenericTagCust
                 // returning false
                 return false
             }
-        }).onMatch(({ context, customData }) => {
-            context.icon = customData.tag || ''
-            customData.isVoid = voidTags.includes(customData.tag || '')
-            customData.isText = textTags.includes(customData.tag || '')
-            if (customData.isVoid || customData.isText) {
-                // no need to parse inner in isText or isVoid cases
-                context.recognizes = context.recognizes.filter(r => r !== options.innerNode)
-            }
         })
-        //                                                             after inner we ain't going to have anything
-        //                                                             to parse in this node
-            .onAfterChildParse((childContext) => childContext.node === options.innerNode ? childContext.clearRecognizes() : null)
-            .onPop(({ parserContext, customData }) => {
-                if (
-                    !customData.isVoid &&
-                typeof customData.endTag === 'string' &&
-                ((customData.prefix || '') + (customData.tag || '')) !== customData.endTag
-                ) {
-                    parserContext.panicBlock(
-                        `Open tag <${ customData.tag || '' }> and closing tag </${ customData.endTag }> must be equal.`,
-                        customData.tag?.length || 0,
-                        customData.endTag.length + 1,
-                    )
-                }
-            }).addRecognizes(options.innerNode)
+            .addRecognizes(tagOptions.innerNode)
+    }
+
+    public beforeOnAfterChildParse(child: ProstoParserNodeContext) {
+        // after inner we ain't going to have anything
+        // to parse in this node
+        return child.node === this.tagOptions.innerNode ? child.clearRecognizes() : null
+    }
+
+    public beforeOnMatch(data: TPorstoParserCallbackDataMatched<T>) {
+        const { context } = data
+        const customData = context.getCustomData<T>()
+        context.icon = customData.tag || ''
+        customData.isVoid = this.voidTags.includes(customData.tag || '')
+        customData.isText = this.textTags.includes(customData.tag || '')
+        if (customData.isVoid || customData.isText) {
+            // no need to parse inner in isText or isVoid cases
+            context.recognizes = context.recognizes.filter(r => r !== this.tagOptions.innerNode)
+        }
+    }
+
+    public beforeOnPop(data: TPorstoParserCallbackData<T>) {
+        const { parserContext, customData } = data
+        if (
+            !customData.isVoid &&
+        typeof customData.endTag === 'string' &&
+        ((customData.prefix || '') + (customData.tag || '')) !== customData.endTag
+        ) {
+            parserContext.panicBlock(
+                `Open tag <${ customData.tag || '' }> and closing tag </${ customData.endTag }> must be equal.`,
+                customData.tag?.length || 0,
+                customData.endTag.length + 1,
+            )
+        }
     }
 }

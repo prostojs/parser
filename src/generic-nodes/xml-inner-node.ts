@@ -1,5 +1,5 @@
 import { GenericNode } from '.'
-import { TDefaultCustomDataType, TGenericCustomDataType } from '..'
+import { ProstoParserNodeContext, TDefaultCustomDataType, TGenericCustomDataType } from '..'
 
 export interface TInnerOptions {
     label?: string
@@ -8,20 +8,25 @@ export interface TInnerOptions {
 }
 
 export class GenericXmlInnerNode<T extends TGenericCustomDataType = TDefaultCustomDataType> extends GenericNode<T> {
-    constructor(options?: TInnerOptions) {
+    private innerOptions: TInnerOptions | undefined
+
+    constructor(innerOptions?: TInnerOptions) {
         super({
-            label: options?.label || '',
-            icon: options?.icon || '',
+            label: innerOptions?.label || '',
+            icon: innerOptions?.icon || '',
             tokens: ['>', '</'],
             tokenOptions: 'omit-eject',
         })
-        if (options?.trim) {
-            this.onAppendContent((s) => {
-                if (typeof s === 'string') {
-                    return s.trim().replace(/\n/g, ' ').replace(/\s+/, ' ')
-                }
-                return s
-            })
+
+        this.innerOptions = innerOptions
+    }
+
+    beforeOnAppendContent(s: string | ProstoParserNodeContext<T>['content']) {
+        if (this.innerOptions?.trim) {
+            if (typeof s === 'string') {
+                return s.trim().replace(/\n/g, ' ').replace(/\s+/, ' ')
+            }
         }
+        return s
     }
 }

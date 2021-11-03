@@ -1,4 +1,4 @@
-import { TDefaultCustomDataType, TGenericCustomDataType, TMapContentOptions } from '..'
+import { TDefaultCustomDataType, TGenericCustomDataType, TMapContentOptions, TPorstoParserCallbackData, TPorstoParserCallbackDataMatched } from '..'
 import { TProstoParserNodeOptions } from '../p.types'
 import { ProstoParserNodeBase } from './node-base'
 import { ProstoParserNodeContext } from './node-context'
@@ -49,5 +49,31 @@ export class ProstoParserNode<T extends TGenericCustomDataType = TDefaultCustomD
     
     public parse(source: string) {
         return this.createContext(0, 0).parserContext.parse(source)
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public beforeOnPop(data: TPorstoParserCallbackData<T>) {
+        // to be overriden
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public beforeOnMatch(data: TPorstoParserCallbackDataMatched<T>) {
+        // to be overriden
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public beforeOnAppendContent(s: string | ProstoParserNodeContext<T>['content'], data: TPorstoParserCallbackData<T>): string | ProstoParserNodeContext<T>['content'] {
+        // to be overriden
+        return s
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public beforeOnAfterChildParse(child: ProstoParserNodeContext, data: TPorstoParserCallbackData<T>) {
+        // to be overriden
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public beforeOnBeforeChildParse(child: ProstoParserNodeContext, data: TPorstoParserCallbackData<T>) {
+        // to be overriden
     }
 }
