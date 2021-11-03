@@ -62,7 +62,7 @@ Here's an example of XML (HTML) parser that uses so-called `generic nodes` which
 ```ts
 // Each parser must start with some node which we call "root node"
 // In this case we say it is a kind of "inner" node for HTML
-// Option `trim` will trim the extra spaces  from teh content
+// Option `trim` will trim the extra spaces  from the content
 const rootNode = new GenericXmlInnerNode({ trim: true, label: '', icon: 'ROOT' })
 
 // HTML document starts with <!DOCTYPE... thing so let's create the
