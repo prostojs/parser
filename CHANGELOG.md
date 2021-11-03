@@ -1,3 +1,12 @@
+# [0.4.0](https://github.com/prostojs/parser/compare/v0.3.4...v0.4.0) (2021-11-03)
+
+
+### Features
+
+* add generic parse nods for xml ([7b24e6b](https://github.com/prostojs/parser/commit/7b24e6bb832a5f60611687075f77a83d3a13139c))
+
+
+
 ## [0.3.4](https://github.com/prostojs/parser/compare/v0.3.3...v0.3.4) (2021-10-31)
 
 
