@@ -186,7 +186,7 @@ describe('ProstoParser', () => {
       │     ├─ “ comment
       │     │  └─ « First Comment »
       │     └─ style tag(style) isText☑ endTag(style)
-      │        └─ «\\\\n                .bg-red {\\\\n                    background-color: red;\\\\n                }\\\\n            »
+      │        └─ «\\\\n                .bg-red {\\\\n                    background-color: red…»
       └─ body tag(body) endTag(body)
          └─ ◦ inner
             ├─ “ comment

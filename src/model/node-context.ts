@@ -49,7 +49,7 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
     }
 
     public get icon() {
-        return this.icon
+        return this._icon
     }
 
     public set label(value: string) {
@@ -57,7 +57,7 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
     }
 
     public get label() {
-        return this.label
+        return this._label
     }
 
     public getCustomData<T2 extends TGenericCustomDataType = T>() {
