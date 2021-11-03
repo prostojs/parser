@@ -1,3 +1,12 @@
+## [0.4.5](https://github.com/prostojs/parser/compare/v0.4.4...v0.4.5) (2021-11-03)
+
+
+### Bug Fixes
+
+* ignoreBackSlash at beginning of the source ([119fac8](https://github.com/prostojs/parser/commit/119fac839bc66644304646566a4c40b51fb13a92))
+
+
+
 ## [0.4.4](https://github.com/prostojs/parser/compare/v0.4.3...v0.4.4) (2021-11-03)
 
 
