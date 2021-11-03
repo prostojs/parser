@@ -5,58 +5,71 @@ import { GenericStringExpressionNode } from './generic-nodes/string-expression-n
 import { GenericRecursiveNode } from './generic-nodes/recursive-node'
 
 describe('ProstoParser', () => {
-    it('must parse URI pattern expression', () => {
-        const regexNode = new GenericRecursiveNode({
-            label: 'RegEx',
-            tokens: ['(', ')'],
-            backSlash: 'ignore-ignore',
-        }).onMatch(({ parserContext, context }) => {
-            if (parserContext.fromStack()?.node.id === context.node.id) {
-                if (!parserContext.here.startsWith('?:')) {
-                    context.content[0] += '?:'
-                }
-            } else {
-                if (parserContext.here.startsWith('^')) {
-                    parserContext.jump(1)
-                }
+    const regexNode = new GenericRecursiveNode({
+        label: 'RegEx',
+        tokens: ['(', ')'],
+        backSlash: 'ignore-ignore',
+    }).onMatch(({ parserContext, context }) => {
+        if (parserContext.fromStack()?.node.id === context.node.id) {
+            if (!parserContext.here.startsWith('?:')) {
+                context.content[0] += '?:'
             }
-        })
-
-        const hoistRegex: TProstoParserHoistOptions = {
-            as: 'regex',
-            node: regexNode,
-            removeFromContent: true,
-            deep: 1,
-            map: ({ content }) => content.join(''),
+        } else {
+            if (parserContext.here.startsWith('^')) {
+                parserContext.jump(1)
+            }
         }
+    })
 
-        const paramNode = new GenericNode({
-            label: 'Parameter',
-            tokens: [':', /[\/\-]/],
-            tokenOptions: 'omit-eject',
-            backSlash: 'ignore-',
-        }).mapContent('key', content => content.shift())
-            .popsAtEOFSource(true)
-            .addRecognizes(regexNode)
-            .addPopsAfterNode(regexNode)
-            .addHoistChildren(hoistRegex)
+    const hoistRegex: TProstoParserHoistOptions = {
+        as: 'regex',
+        node: regexNode,
+        removeFromContent: true,
+        deep: 1,
+        map: ({ content }) => content.join(''),
+    }
 
-        const wildcardNode = new GenericNode({
-            label: 'Wildcard',
-            tokens: ['*', /[^*\()]/],
-            tokenOptions: '-eject',
-        })
-            .mapContent('key', content => content.shift())
-            .popsAtEOFSource(true)
-            .addRecognizes(regexNode)
-            .addPopsAfterNode(regexNode)
-            .addHoistChildren(hoistRegex)
+    const paramNode = new GenericNode({
+        label: 'Parameter',
+        tokens: [':', /[\/\-]/],
+        tokenOptions: 'omit-eject',
+        backSlash: 'ignore-',
+    }).mapContent('key', content => content.shift())
+        .popsAtEOFSource(true)
+        .addRecognizes(regexNode)
+        .addPopsAfterNode(regexNode)
+        .addHoistChildren(hoistRegex)
 
-        const result = new GenericRootNode({ label: 'Static' })
-            .addRecognizes(paramNode, wildcardNode)
+    const wildcardNode = new GenericNode({
+        label: 'Wildcard',
+        tokens: ['*', /[^*\()]/],
+        tokenOptions: '-eject',
+    })
+        .mapContent('key', content => content.shift())
+        .popsAtEOFSource(true)
+        .addRecognizes(regexNode)
+        .addPopsAfterNode(regexNode)
+        .addHoistChildren(hoistRegex)
+
+    const pathParser = new GenericRootNode({ label: 'Static' })
+        .addRecognizes(paramNode, wildcardNode)
+
+    it('must parse URI pattern with first variable', () => {
+        const tree = pathParser
+            .parse(':variable')
+            .toTree()
+        console.log(tree)
+        expect(dye.strip(tree)).toMatchInlineSnapshot(`
+"ROOT Static
+└─ ◦ Parameter key(variable)
+"
+`)
+    })
+
+    it('must parse URI pattern expression', () => {
+        const tree = pathParser
             .parse('/test/:name1-:name2(a(?:test(inside))b)/*(d)/test/*/:ending')
-
-        const tree = result.toTree()
+            .toTree()
         console.log(tree)
         expect(dye.strip(tree)).toMatchInlineSnapshot(`
 "ROOT Static

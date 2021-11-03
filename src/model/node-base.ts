@@ -300,7 +300,7 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
 
     private getRgOutOfTokenDescriptor(descr: TProstoParserTokenDescripor<T> | undefined): RegExp | void {
         if (descr) {
-            const prefix = descr.ignoreBackSlashed ? /(?<=[^\\](?:\\\\)*)/.source : ''
+            const prefix = descr.ignoreBackSlashed ? /(?<=(?:^|[^\\])(?:\\\\)*)/.source : ''
             let token: string | string[] | RegExp
             if (typeof descr.token === 'function') {
                 token = descr.token(this as unknown as ProstoParserNodeContext<T>)
