@@ -2,7 +2,7 @@ import { GenericNode } from '.'
 import { ProstoParserNode } from '..'
 import { escapeRegex } from '../utils'
 
-export type TGenericTagCustomData = {
+export interface TGenericTagCustomData {
     tag: string
     endTag: string | null
     isVoid: boolean

@@ -13,11 +13,18 @@ const styles = {
     node: (s: string) => __DYE_YELLOW__ + s + __DYE_COLOR_OFF__,
 }
 
+const stringOutputLimit = 70
+const cutoffString = __DYE_DIM__ + '…' + __DYE_DIM_OFF__
+
 export const parserTree: ProstoTree<ProstoParserNodeContext | string | 0> = new ProstoTree<ProstoParserNodeContext | string | 0>({
     children: 'content',
     renderLabel: (context) => {
         if (typeof context === 'string') {
-            return styles.text('«' + context.replace(/\n/g, '\\n') + '»')
+            let s = context.replace(/\n/g, '\\n')
+            if (s.length > stringOutputLimit) {
+                s = s.slice(0, stringOutputLimit) + cutoffString
+            }
+            return styles.text('«' + s + '»')
         } else if (typeof context === 'object' && context instanceof ProstoParserNodeContext) {
             let keys = ''
             const data = context.getCustomData<Record<string, unknown>>()
@@ -34,6 +41,9 @@ export const parserTree: ProstoTree<ProstoParserNodeContext | string | 0> = new 
                     keys += ' ' + `${ styles.underscore(st(key)) }${ st(val ? '☑' : '☐') }`
                 }
             })
+            if (keys.length > stringOutputLimit) {
+                keys = keys.slice(0, stringOutputLimit) + cutoffString
+            }
             return styles.node(context.icon + (context.label ? ' ' : '')) + styles.nodeDim(context.label) + keys
         }
         return ''

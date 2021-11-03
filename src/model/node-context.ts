@@ -11,9 +11,9 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
 
     protected readonly _customData: T = {} as T
 
-    public label: string
+    private _label: string
 
-    public icon: string
+    private _icon: string
 
     public readonly parserContext: ProstoParserContext
 
@@ -37,11 +37,27 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         if (this.options.initCustomData) {
             this._customData = this.options.initCustomData()
         }
-        this.label = this.options.label || ''
-        this.icon = this.options.icon || '◦'
+        this._label = this.options.label || ''
+        this._icon = this.options.icon || '◦'
         this.parserContext = rootContext || new ProstoParserContext(this)
         this.startPos = this.parserContext.getPosition()
         this.endPos = this.parserContext.getPosition()
+    }
+
+    public set icon(value: string) {
+        this._icon = value
+    }
+
+    public get icon() {
+        return this.icon
+    }
+
+    public set label(value: string) {
+        this._label = value
+    }
+
+    public get label() {
+        return this.label
     }
 
     public getCustomData<T2 extends TGenericCustomDataType = T>() {

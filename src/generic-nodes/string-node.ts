@@ -1,7 +1,7 @@
 import { GenericNode, TOmitEjectShortcut } from '.'
 import { ProstoParserNodeContext } from '..'
 
-export type TGenericStringNodeCustomData = {
+export interface TGenericStringNodeCustomData {
     quote: string
 }
 

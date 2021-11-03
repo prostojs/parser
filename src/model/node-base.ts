@@ -48,6 +48,14 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
     // Options Setters/Getters  =======================================================================================
     //
 
+    public set icon(value: string) {
+        this.options.icon = value
+    }
+
+    public set label(value: string) {
+        this.options.label = value
+    }
+
     public get startsWith() {
         return this.options.startsWith
     }
