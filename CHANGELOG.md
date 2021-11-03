@@ -1,3 +1,7 @@
+## [0.4.3](https://github.com/prostojs/parser/compare/v0.4.2...v0.4.3) (2021-11-03)
+
+
+
 ## [0.4.2](https://github.com/prostojs/parser/compare/v0.4.1...v0.4.2) (2021-11-03)
 
 
