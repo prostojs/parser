@@ -75,7 +75,7 @@ export interface TSearchToken {
     node?: ProstoParserNode
 }
 
-export type TGenericCustomDataType = Record<string, unknown>
+export interface TGenericCustomDataType {}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type TDefaultCustomDataType = any // this can really be any, can't it?

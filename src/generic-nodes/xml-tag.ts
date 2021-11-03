@@ -42,7 +42,7 @@ export interface TGenericXmlTagOptions {
     prefix?: string
 }
 
-export class GenericXmlTagNode<T extends TGenericTagCustomData> extends GenericNode<T> {
+export class GenericXmlTagNode<T extends TGenericTagCustomData = TGenericTagCustomData> extends GenericNode<T> {
     constructor(options: TGenericXmlTagOptions) {
         const voidTags = options?.voidTags || htmlVoidTags
         const textTags = options?.textTags || htmlTextTags

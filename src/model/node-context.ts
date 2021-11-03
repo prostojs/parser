@@ -213,9 +213,10 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
     private processMapContent() {
         const targetNodeOptions = this.options
         if (targetNodeOptions.mapContent) {
-            Object.keys(targetNodeOptions.mapContent).forEach((key: string) => {
-                if (targetNodeOptions.mapContent && targetNodeOptions.mapContent[key]) {
-                    (this._customData as Record<string, unknown>)[key] = targetNodeOptions.mapContent[key](this.content)
+            Object.keys(targetNodeOptions.mapContent).forEach((key) => {
+                const keyOfT: keyof T = key as keyof T
+                if (targetNodeOptions.mapContent && targetNodeOptions.mapContent[keyOfT]) {
+                    this._customData[keyOfT] = targetNodeOptions.mapContent[keyOfT](this.content) as T[keyof T]
                 }
             })
         }
