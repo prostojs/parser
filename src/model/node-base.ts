@@ -38,7 +38,7 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
         return this
     }
 
-    public addHoistChildren(...args: TProstoParserHoistOptions<T>[]) {
+    public addHoistChildren<T2 extends TGenericCustomDataType = TDefaultCustomDataType>(...args: TProstoParserHoistOptions<T, T2>[]) {
         if (!this.options.hoistChildren) this.options.hoistChildren = []
         this.options.hoistChildren.push(...args)
         return this
