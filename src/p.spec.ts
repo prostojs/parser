@@ -21,15 +21,21 @@ describe('ProstoParser', () => {
         }
     })
 
-    const hoistRegex: TProstoParserHoistOptions = {
+    type TCustomContext = {
+        key: string
+        regex: string
+    }
+    
+    const hoistRegex: TProstoParserHoistOptions<TCustomContext> = {
         as: 'regex',
         node: regexNode,
-        removeFromContent: true,
+        onConflict: 'overwrite',
+        mapRule: 'content.join',
+        removeChildFromContent: true,
         deep: 1,
-        map: ({ content }) => content.join(''),
     }
 
-    const paramNode = new GenericNode({
+    const paramNode = new GenericNode<TCustomContext>({
         label: 'Parameter',
         tokens: [':', /[\/\-]/],
         tokenOptions: 'omit-eject',
@@ -39,8 +45,9 @@ describe('ProstoParser', () => {
         .addRecognizes(regexNode)
         .addPopsAfterNode(regexNode)
         .addHoistChildren(hoistRegex)
+        .initCustomData(() => ({ key: '', regex: '([^\\/]*)' }))
 
-    const wildcardNode = new GenericNode({
+    const wildcardNode = new GenericNode<TCustomContext>({
         label: 'Wildcard',
         tokens: ['*', /[^*\()]/],
         tokenOptions: '-eject',
@@ -61,7 +68,7 @@ describe('ProstoParser', () => {
         console.log(tree)
         expect(dye.strip(tree)).toMatchInlineSnapshot(`
 "ROOT Static
-└─ ◦ Parameter key(variable)
+└─ ◦ Parameter key(variable) regex(([^\\\\/]*))
 "
 `)
     })
@@ -74,15 +81,15 @@ describe('ProstoParser', () => {
         expect(dye.strip(tree)).toMatchInlineSnapshot(`
 "ROOT Static
 ├─ «/test/»
-├─ ◦ Parameter key(name1)
+├─ ◦ Parameter key(name1) regex(([^\\\\/]*))
 ├─ «-»
-├─ ◦ Parameter regex((a(?:test(?:inside))b)) key(name2)
+├─ ◦ Parameter key(name2) regex((a(?:test(?:inside))b))
 ├─ «/»
 ├─ ◦ Wildcard regex((d)) key(*)
 ├─ «/test/»
 ├─ ◦ Wildcard key(*)
 ├─ «/»
-└─ ◦ Parameter key(ending)
+└─ ◦ Parameter key(ending) regex(([^\\\\/]*))
 "
 `)
     })

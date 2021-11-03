@@ -29,7 +29,7 @@ export class GenericXmlAttributeNode<T extends TGenericAttributeCustomData = TGe
             this.addHoistChildren({
                 node: options?.valueNode,
                 as: 'value',
-                removeFromContent: true,
+                removeChildFromContent: true,
                 deep: 1,
                 map: ({ content }) => content.join(''),
             })

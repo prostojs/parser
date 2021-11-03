@@ -42,19 +42,48 @@ export class ProstoHoistManager {
                 if (options.deep === true || Number(options.deep) >= (ctx.level - context.level)) {
                     if (options.asArray) {
                         const hoisted = customData[options.as as string] = (customData[options.as as string] || []) as unknown[]
-                        hoisted.push(options.map ? options.map(ctx) : ctx)
+                        if (!Array.isArray(hoisted)) {
+                            if (!options.onConflict || options.onConflict === 'error') {
+                                throw new Error(`Can not hoist "${ ctx.node.name }" to "${ context.node.name }" as "${ options.as as string }". "${ options.as as string }" already exists and it is not an Array Type.`)
+                            } else if (options.onConflict === 'overwrite') {
+                                customData[options.as as string] = [doTheMapRule(options, ctx)]
+                            } else if (options.onConflict !== 'ignore') {
+                                throw new Error(`Unsupported hoisting option onConflict "${ options.onConflict as string }"`)
+                            }
+                        } else {
+                            hoisted.push(doTheMapRule(options, ctx))
+                        }
                     } else {
                         if (customData[options.as as string]) {
-                            throw new Error(`Can not hoist multiple "${ ctx.node.name }" to "${ context.node.name }" as "${ options.as as string }". "${ options.as as string }" already exists.`)
+                            if (!options.onConflict || options.onConflict === 'error') {
+                                throw new Error(`Can not hoist multiple "${ ctx.node.name }" to "${ context.node.name }" as "${ options.as as string }". "${ options.as as string }" already exists.`)
+                            } else if (options.onConflict === 'overwrite') {
+                                customData[options.as as string] = doTheMapRule(options, ctx)
+                            } else if (options.onConflict !== 'ignore') {
+                                throw new Error(`Unsupported hoisting option onConflict "${ options.onConflict as string }"`)
+                            }
                         } else {
-                            customData[options.as as string] = options.map ? options.map(ctx) : ctx
+                            customData[options.as as string] = doTheMapRule(options, ctx)
                         }
                     }
-                    if (options.removeFromContent) {
+                    if (options.removeChildFromContent) {
                         context.content = context.content.filter(c => c !== ctx) 
                     }
                 }
             })
+        }
+        function doTheMapRule(options: TProstoParserHoistOptions, ctx: ProstoParserNodeContext) {
+            if (options.map) {
+                return options.map(ctx)
+            }
+            if (options.mapRule === 'content.join') {
+                return ctx.content.join('')
+            }
+            if (options.mapRule?.startsWith('customData.')) {
+                const key = options.mapRule.slice(11)
+                return ctx.getCustomData<Record<string, unknown>>()[key]
+            }
+            return ctx
         }
     }
 }

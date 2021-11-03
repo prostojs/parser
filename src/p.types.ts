@@ -2,12 +2,14 @@ import { ProstoParserNode } from './model/node'
 import { ProstoParserNodeContext } from './model/node-context'
 import { ProstoParserContext } from './model/parser-context'
 
-export interface TProstoParserHoistOptions<T extends TGenericCustomDataType = TDefaultCustomDataType> {
-    node: ProstoParserNode,
-    as: keyof T,
-    asArray?: boolean,
+export interface TProstoParserHoistOptions<T extends TGenericCustomDataType = TDefaultCustomDataType, T2 extends TGenericCustomDataType = TDefaultCustomDataType> {
+    node: ProstoParserNode<T2>
+    as: keyof T
+    onConflict?: 'error' | 'overwrite' | 'ignore'
+    mapRule?: keyof T2 extends string ? '' | 'content.join' | `customData.${ keyof T2 }` : '' | 'content.join'
+    asArray?: boolean
     deep?: number | boolean
-    removeFromContent?: boolean
+    removeChildFromContent?: boolean
     map?: (ctx: ProstoParserNodeContext<T>) => unknown
 }
 
@@ -73,9 +75,7 @@ export interface TSearchToken {
     node?: ProstoParserNode
 }
 
-export interface TGenericCustomDataType {
-    [key: string]: unknown
-}
+export type TGenericCustomDataType = Record<string, unknown>
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type TDefaultCustomDataType = any // this can really be any, can't it?

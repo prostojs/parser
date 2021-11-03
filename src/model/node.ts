@@ -35,6 +35,7 @@ export class ProstoParserNode<T extends TGenericCustomDataType = TDefaultCustomD
             onAppendContent: this.options.onAppendContent as Required<TProstoParserNodeOptions>['onAppendContent'],
             onAfterChildParse: this.options.onAfterChildParse as Required<TProstoParserNodeOptions>['onAfterChildParse'],
             onBeforeChildParse: this.options.onBeforeChildParse as Required<TProstoParserNodeOptions>['onBeforeChildParse'],
+            initCustomData: this.options.initCustomData as Required<TProstoParserNodeOptions>['initCustomData'],
         }
     }
 
