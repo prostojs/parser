@@ -1,3 +1,12 @@
+## [0.4.7](https://github.com/prostojs/parser/compare/v0.4.6...v0.4.7) (2021-11-03)
+
+
+### Features
+
+* add type to addHoistChildren ([526dc09](https://github.com/prostojs/parser/commit/526dc09040cfc1da2e5451e1c1f44d82f4d2e4ce))
+
+
+
 ## [0.4.6](https://github.com/prostojs/parser/compare/v0.4.5...v0.4.6) (2021-11-03)
 
 
