@@ -11,6 +11,10 @@ export interface TProstoParserHoistOptions<T extends TGenericCustomDataType = TD
     map?: (ctx: ProstoParserNodeContext<T>) => unknown
 }
 
+export type TMapContentOptions<T extends TGenericCustomDataType = TDefaultCustomDataType> = {
+    [key in keyof T]: (content: ProstoParserNodeContext<T>['content']) => unknown
+}
+
 export interface TProstoParserNodeOptions<T extends TGenericCustomDataType = TDefaultCustomDataType> {
     label?: string
     icon?: string
@@ -23,7 +27,7 @@ export interface TProstoParserNodeOptions<T extends TGenericCustomDataType = TDe
     skipToken?: string | string[] | RegExp,
     recognizes?: ProstoParserNode[]
     hoistChildren?: TProstoParserHoistOptions<T>[]
-    mapContent?: { [key: string]: (content: ProstoParserNodeContext<T>['content']) => unknown }
+    mapContent?: TMapContentOptions<T>,
     onPop?: ((data: TPorstoParserCallbackData<T>) => void)
     onMatch?: ((data: TPorstoParserCallbackDataMatched<T>) => void)
     onAppendContent?: ((s: string | ProstoParserNodeContext<T>['content'], data: TPorstoParserCallbackData<T>) => string | ProstoParserNodeContext<T>['content'])

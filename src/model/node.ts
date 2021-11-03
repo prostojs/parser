@@ -1,4 +1,4 @@
-import { TDefaultCustomDataType, TGenericCustomDataType } from '..'
+import { TDefaultCustomDataType, TGenericCustomDataType, TMapContentOptions } from '..'
 import { TProstoParserNodeOptions } from '../p.types'
 import { ProstoParserNodeBase } from './node-base'
 import { ProstoParserNodeContext } from './node-context'
@@ -29,7 +29,7 @@ export class ProstoParserNode<T extends TGenericCustomDataType = TDefaultCustomD
             hoistChildren: [...(this.options.hoistChildren || [])],
             mapContent: {
                 ...this.options.mapContent,
-            },
+            } as TMapContentOptions<T>,
             onPop: this.options.onPop as Required<TProstoParserNodeOptions>['onPop'],
             onMatch: this.options.onMatch as Required<TProstoParserNodeOptions>['onMatch'],
             onAppendContent: this.options.onAppendContent as Required<TProstoParserNodeOptions>['onAppendContent'],

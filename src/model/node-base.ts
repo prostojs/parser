@@ -1,5 +1,5 @@
 import { ProstoParserNodeContext } from '.'
-import { TDefaultCustomDataType, TGenericCustomDataType } from '..'
+import { TDefaultCustomDataType, TGenericCustomDataType, TMapContentOptions } from '..'
 import { TPorstoParseNodeMergeOptions, TPorstoParserCallbackData,
     TProstoParserNodeOptions, TProstoParserHoistOptions, TProstoParserTokenDescripor } from '../p.types'
 import { escapeRegex } from '../utils'
@@ -117,8 +117,8 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
         return this.options.mapContent
     }
 
-    public mapContent(key: string, value: (content: ProstoParserNodeContext<T>['content']) => unknown) {
-        this.options.mapContent = this.options.mapContent || {}
+    public mapContent(key: keyof T, value: (content: ProstoParserNodeContext<T>['content']) => unknown) {
+        this.options.mapContent = this.options.mapContent || {} as TMapContentOptions<T>
         this.options.mapContent[key] = value
         return this
     }
