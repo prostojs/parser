@@ -1,3 +1,12 @@
+## [0.4.4](https://github.com/prostojs/parser/compare/v0.4.3...v0.4.4) (2021-11-03)
+
+
+### Features
+
+* mapContent type corresponds to customData ([edd9fdb](https://github.com/prostojs/parser/commit/edd9fdb66efb5c7643aa68a111610d53aa3b5422))
+
+
+
 ## [0.4.3](https://github.com/prostojs/parser/compare/v0.4.2...v0.4.3) (2021-11-03)
 
 
