@@ -233,7 +233,7 @@ const expression = new BasicNode<{ expression: string }>({
     // This time the rule `join` will only
     // join the `stringNode` content (.join(''))
     // and append it to this node's content.
-    // We use `stringNode` here handle backslashed
+    // We use `stringNode` here to handle backslashed
     // quotes properly
     .addAbsorbs(stringNode, 'join')
     // Let's map the content to the customData.expression
