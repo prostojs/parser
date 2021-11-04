@@ -145,6 +145,7 @@ export class ProstoParserContext {
         this.stack.push(this.context)
         this.hoistManager.addHoistOptions(this.context)
         this.context = ctx
+        return ctx
     }
 
     public fromStack(depth = 0) {
