@@ -315,7 +315,7 @@ const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, e
     // `<div attr="value">
     skipToken: /\s/,
 })
-    // onMatch hook triggers when the node matched
+    // onMatch hook is triggered when the node matched
     // and its context was just created
     .onMatch(({ context, customData }) => {
         // only for tree view we store the tag
@@ -339,7 +339,7 @@ const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, e
             context.addAbsorbs(innerNode, 'join')
         }
     })
-    // onBeforeChildParse hook triggers when parser
+    // onBeforeChildParse hook is triggered when parser
     // matched the child and is about to start parsing it.
     // The child context is already created.
     .onBeforeChildParse((childContext, { context, customData }) => {
@@ -364,7 +364,7 @@ const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, e
             }
         }
     })
-    // onAfterChildParse hook triggers when parser
+    // onAfterChildParse hook is triggered when parser
     // enountered the end condition for the child.
     .onAfterChildParse((childContext, { context }) => {
         if (childContext.node === innerNode) {
@@ -379,7 +379,7 @@ const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, e
     // that this node can end with the file
     // (we don't really need it here)
     .popsAtEOFSource(true)
-    // onPop hook triggers when this node met the
+    // onPop hook is triggered when this node met the
     // ending condition and pops out.
     .onPop(({ customData: { isVoid, tag, endTag }, parserContext }) => {
         if (!isVoid && typeof endTag === 'string' && tag !== endTag) {
