@@ -1,14 +1,13 @@
 import { dye } from '@prostojs/dye'
-import { TProstoParserHoistOptions } from './p.types'
-import { GenericCommentNode, GenericNode, GenericRootNode, GenericStringNode, GenericXmlAttributeNode, GenericXmlAttributeValue, GenericXmlInnerNode, GenericXmlTagNode } from './generic-nodes'
-import { GenericStringExpressionNode } from './generic-nodes/string-expression-node'
-import { GenericRecursiveNode } from './generic-nodes/recursive-node'
+import { BasicNode } from './model/basic-node'
+import { escapeRegex } from './utils'
 
 describe('ProstoParser', () => {
-    const regexNode = new GenericRecursiveNode({
+    const regexNode = new BasicNode({
         label: 'RegEx',
         tokens: ['(', ')'],
         backSlash: 'ignore-ignore',
+        recursive: true,
     }).onMatch(({ parserContext, context }) => {
         if (parserContext.fromStack()?.node.id === context.node.id) {
             if (!parserContext.here.startsWith('?:')) {
@@ -25,40 +24,29 @@ describe('ProstoParser', () => {
         key: string
         regex: string
     }
-    
-    const hoistRegex: TProstoParserHoistOptions<TCustomContext> = {
-        as: 'regex',
-        node: regexNode,
-        onConflict: 'overwrite',
-        mapRule: 'content.join',
-        removeChildFromContent: true,
-        deep: 1,
-    }
 
-    const paramNode = new GenericNode<TCustomContext>({
+    const paramNode = new BasicNode<TCustomContext>({
         label: 'Parameter',
         tokens: [':', /[\/\-]/],
-        tokenOptions: 'omit-eject',
+        tokenOE: 'omit-eject',
         backSlash: 'ignore-',
     }).mapContent('key', content => content.shift())
         .popsAtEOFSource(true)
-        .addRecognizes(regexNode)
         .addPopsAfterNode(regexNode)
-        .addHoistChildren(hoistRegex)
+        .addAbsorbs(regexNode, 'join->regex')
         .initCustomData(() => ({ key: '', regex: '([^\\/]*)' }))
 
-    const wildcardNode = new GenericNode<TCustomContext>({
+    const wildcardNode = new BasicNode<TCustomContext>({
         label: 'Wildcard',
         tokens: ['*', /[^*\()]/],
-        tokenOptions: '-eject',
+        tokenOE: '-eject',
     })
-        .mapContent('key', content => content.shift())
+        .mapContent('key', 'join-clear')
         .popsAtEOFSource(true)
-        .addRecognizes(regexNode)
         .addPopsAfterNode(regexNode)
-        .addHoistChildren(hoistRegex)
+        .addAbsorbs(regexNode, 'join->regex')
 
-    const pathParser = new GenericRootNode({ label: 'Static' })
+    const pathParser = new BasicNode({ label: 'Static', icon: 'ROOT' })
         .addRecognizes(paramNode, wildcardNode)
 
     it('must parse URI pattern with first variable', () => {
@@ -94,36 +82,153 @@ describe('ProstoParser', () => {
 `)
     })
 
+    const htmlVoidTags = [
+        'area',
+        'base',
+        'br',
+        'col',
+        'command',
+        'embed',
+        'hr',
+        'img',
+        'input',
+        'keygen',
+        'link',
+        'meta',
+        'param',
+        'source',
+        'track',
+        'wbr',
+    ]
+    
+    const htmlTextTags = [
+        'script',
+        'style',
+    ]
+
     it('must parse html', () => {
-        const rootNode = new GenericXmlInnerNode({ trim: true, label: '', icon: 'ROOT' })
-        const docTypeNode = new GenericNode({
+        const rootNode = new BasicNode({ icon: 'ROOT' })
+            .onAppendContent(s => s.trim().replace(/\n/g, ' ').replace(/\s+/, ' '))
+        
+        const docTypeNode = new BasicNode({
             label: 'Document Type',
             tokens: ['<!DOCTYPE ', '>'],
-            tokenOptions: 'omit-omit',
+            tokenOE: 'omit-omit',
         })
-        const cDataNode = new GenericNode({
-            tokens: ['<![CDATA[', ']]>'],
-            label: '',
+
+        const cDataNode = new BasicNode({
             icon: '<![CDATA[',
-            tokenOptions: 'omit-omit',
+            tokens: ['<![CDATA[', ']]>'],
+            tokenOE: 'omit-omit',
         })
-        const commentNode = new GenericCommentNode({
-            block: true,
-            delimiters: ['<!--', '-->'],
+
+        const commentNode = new BasicNode({
+            label: 'comment',
+            icon: '“',
+            tokens: ['<!--', '-->'],
+            tokenOE: 'omit-omit',
         })
-        const innerNode = new GenericXmlInnerNode({ trim: true, label: 'inner' })
-        const tagNode = new GenericXmlTagNode({ innerNode })
-        const prefixedTagNode = new GenericXmlTagNode({ innerNode, prefix: 'p:'})
-        const valueNode = new GenericXmlAttributeValue(true)
-        const attrNode = new GenericXmlAttributeNode({ valueNode })
-        const prefixedAttrNode = new GenericXmlAttributeNode({ valueNode, prefix: 'v-' })
-        const stringNode = new GenericStringNode()
-        const expression = new GenericStringExpressionNode(stringNode)
+
+        const stringNode = new BasicNode<{ quote: string }>({
+            label: '',
+            icon: '"',
+            tokens: [/(?<quote>["'`])/, context => context.getCustomData().quote || '' ],
+            backSlash: '-ignore',
+        })
+
+        const valueNode = new BasicNode<{ quote: string }>({
+            label: 'value',
+            icon: '=',
+            tokens: [/=(?<quote>["'`])/, context => context.getCustomData().quote || '' ],
+            backSlash: '-ignore',
+            tokenOE: 'omit-omit',
+        })
+
+        const unquotedValueNode = new BasicNode<{ quote: string }>({
+            label: 'value',
+            icon: '=',
+            tokens: [/=(?<content>\w+)/, /[\s\/\>]/ ],
+            tokenOE: 'omit-eject',
+        })
+
+        const attrNode = new BasicNode<{ key: string, value: string }>({
+            label: 'attribute',
+            icon: '=',
+            tokens: [/(?<key>[\w:\-\.]+)/, /[\s\n\/>]/],
+            tokenOE: 'omit-eject',
+        })
+            .addPopsAfterNode(unquotedValueNode, valueNode)
+            .addAbsorbs([unquotedValueNode, valueNode], 'join->value')
+
+        const expression = new BasicNode<{ expression: string }>({
+            label: 'string',
+            icon: '≈',
+            tokens: ['{{', '}}' ],
+            tokenOE: 'omit-omit',
+        })
+            .addAbsorbs(stringNode, 'join')
+            .mapContent('expression', 'join-clear')
+
+        const innerNode = new BasicNode({
+            label: 'inner',
+            tokens: ['>', '</'],
+            tokenOE: 'omit-eject',
+        }).onAppendContent(s => s.trim().replace(/\n/g, ' ').replace(/\s+/, ' '))
+
+        const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, endTag?: string }>({
+            tokens: [
+                /<(?<tag>[\w:\-\.]+)/,
+                ({ customData }) => {
+                    if (customData.isVoid) return /\/?>/
+                    if (customData.isText) return new RegExp(`<\\/(?<endTag>${ escapeRegex(customData.tag) })\\s*>`)
+                    return /(?:\/\>|\<\/(?<endTag>[\w:\-\.]+)\s*\>)/
+                },
+            ],
+            tokenOE: 'omit-omit',
+            skipToken: /\s/,
+        })
+            .onMatch(({ context, customData }) => {
+                context.icon = customData.tag,
+                customData.isVoid = htmlVoidTags.includes(customData.tag)
+                customData.isText = htmlTextTags.includes(customData.tag)
+                if (customData.isVoid) {
+                    context.clearRecognizes(innerNode)
+                }
+                if (customData.isText) {
+                    context.addAbsorbs(innerNode, 'join')
+                }
+            })
+            .onBeforeChildParse((child, { context, customData }) => {
+                if (customData.isText && child.node === innerNode) {
+                    child.clearRecognizes()
+                    child.removeOnAppendContent()
+                    context.clearSkipToken()
+                    child.endsWith = {
+                        token: new RegExp(`<\\/(?<endTag>${ escapeRegex(customData.tag) })\\s*>`),
+                        eject: true,
+                    }
+                }
+            })
+            .onAfterChildParse((child, { context }) => {
+                if (child.node === innerNode) {
+                    context.clearRecognizes()
+                }
+            })
+            // .popsAtEOFSource(true)
+            .onPop(({ customData: { isVoid, tag, endTag }, parserContext }) => {
+                if (!isVoid && typeof endTag === 'string' && tag !== endTag) {
+                    parserContext.panicBlock(
+                        `Open tag <${ tag }> and closing tag </${ endTag }> must be equal.`,
+                        tag.length || 0,
+                        endTag.length + 1,
+                    )
+                }
+            })
+            .addRecognizes(innerNode, attrNode)
         
-        rootNode.addRecognizes(docTypeNode, commentNode, prefixedTagNode, tagNode, expression)
-        innerNode.addRecognizes(commentNode, cDataNode, prefixedTagNode, tagNode, expression)
-        tagNode.addRecognizes(innerNode, prefixedAttrNode, attrNode)
-        prefixedTagNode.addRecognizes(innerNode, prefixedAttrNode, attrNode)
+        rootNode.addRecognizes(docTypeNode, commentNode, tagNode, expression)
+        innerNode.addRecognizes(commentNode, cDataNode, tagNode, expression)
+        commentNode.addRecognizes(expression)
         cDataNode.addRecognizes(expression)
 
         const result = rootNode.parse(`<!DOCTYPE html>
@@ -190,27 +295,31 @@ describe('ProstoParser', () => {
       └─ body tag(body) endTag(body)
          └─ ◦ inner
             ├─ “ comment
-            │  └─ « <div>commented div {{ value }}: {{ item.toUpperCase() }} </div> »
+            │  ├─ « <div>commented div »
+            │  ├─ ≈ string expression( value )
+            │  ├─ «: »
+            │  ├─ ≈ string expression( item.toUpperCase() )
+            │  └─ « </div> »
             ├─ img tag(img) isVoid☑
             │  ├─ = attribute key(src) value(images/firefox-icon.png)
             │  └─ = attribute key(:alt) value('My test image ' + url)
             ├─ div tag(div) endTag(div)
-            │  ├─ = attribute prefix(v-) key(for) value(item of items)
+            │  ├─ = attribute key(v-for) value(item of items)
             │  └─ ◦ inner
             │     ├─ a tag(a)
             │     │  └─ = attribute key(:href) value(item)
             │     └─ ≈ string expression( item )
             ├─ span tag(span) endTag(span)
-            │  ├─ = attribute prefix(v-) key(if) value(condition)
+            │  ├─ = attribute key(v-if) value(condition)
             │  ├─ = attribute key(:class) value()
             │  └─ ◦ inner
             │     └─ «condition 1»
             ├─ span tag(span) endTag(span)
-            │  ├─ = attribute prefix(v-) key(else-if) value(a === 5)
+            │  ├─ = attribute key(v-else-if) value(a === 5)
             │  └─ ◦ inner
             │     └─ «condition 2»
             ├─ span tag(span) endTag(span)
-            │  ├─ = attribute prefix(v-) key(else)
+            │  ├─ = attribute key(v-else)
             │  └─ ◦ inner
             │     └─ «condition 3»
             ├─ div tag(div) endTag(div)
@@ -224,7 +333,7 @@ describe('ProstoParser', () => {
             │        └─ «>»
             ├─ script tag(script) isText☑ endTag(script)
             │  └─ «\\\\n                this is script <div> </div>\\\\n            »
-            ├─ prefixed prefix(p:) tag(prefixed) endTag(p:prefixed)
+            ├─ p:prefixed tag(p:prefixed) endTag(p:prefixed)
             │  └─ ◦ inner
             └─ div tag(div) endTag(div)
                ├─ = attribute key(dense) value(ab\\\\\\"de)

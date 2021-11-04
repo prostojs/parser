@@ -73,15 +73,19 @@ export class ProstoHoistManager {
             })
         }
         function doTheMapRule(options: TProstoParserHoistOptions, ctx: ProstoParserNodeContext) {
-            if (options.map) {
-                return options.map(ctx)
+            if (typeof options.mapRule === 'function') {
+                return options.mapRule(ctx)
             }
             if (options.mapRule === 'content.join') {
                 return ctx.content.join('')
             }
-            if (options.mapRule?.startsWith('customData.')) {
+            if (options.mapRule?.startsWith('customData')) {
                 const key = options.mapRule.slice(11)
-                return ctx.getCustomData<Record<string, unknown>>()[key]
+                if (key) {
+                    return ctx.getCustomData<Record<string, unknown>>()[key]
+                } else {
+                    return ctx.getCustomData<Record<string, unknown>>()
+                }
             }
             return ctx
         }

@@ -14,15 +14,14 @@ export class ProstoParserNode<T extends TGenericCustomDataType = TDefaultCustomD
         this.id = idCounter++
     }
 
-    public getOptions(): TProstoParserNodeOptions<T> {
+    public getOptions(): Required<TProstoParserNodeOptions<T>> {
         return {
             label: this.options.label || '',
             icon: this.options.icon || '',
-            startsWith: (this.options.startsWith ? { ...this.options.startsWith } : this.options.startsWith) as Required<TProstoParserNodeOptions>['startsWith'],
-            endsWith: (this.options.endsWith ? { ...this.options.endsWith } : this.options.endsWith) as Required<TProstoParserNodeOptions>['endsWith'],
+            startsWith: (this.options.startsWith ? { ...this.options.startsWith } : this.options.startsWith) as Required<TProstoParserNodeOptions<T>>['startsWith'],
+            endsWith: (this.options.endsWith ? { ...this.options.endsWith } : this.options.endsWith) as Required<TProstoParserNodeOptions<T>>['endsWith'],
             popsAfterNode: [...(this.options.popsAfterNode || [])],
             popsAtEOFSource: this.options.popsAtEOFSource || false,
-            mergeWith: [...(this.options.mergeWith || [])],
             badToken: this.options.badToken || '',
             skipToken: this.options.skipToken || '',
             recognizes: [...(this.options.recognizes || [])],
@@ -30,12 +29,13 @@ export class ProstoParserNode<T extends TGenericCustomDataType = TDefaultCustomD
             mapContent: {
                 ...this.options.mapContent,
             } as TMapContentOptions<T>,
-            onPop: this.options.onPop as Required<TProstoParserNodeOptions>['onPop'],
-            onMatch: this.options.onMatch as Required<TProstoParserNodeOptions>['onMatch'],
-            onAppendContent: this.options.onAppendContent as Required<TProstoParserNodeOptions>['onAppendContent'],
-            onAfterChildParse: this.options.onAfterChildParse as Required<TProstoParserNodeOptions>['onAfterChildParse'],
-            onBeforeChildParse: this.options.onBeforeChildParse as Required<TProstoParserNodeOptions>['onBeforeChildParse'],
-            initCustomData: this.options.initCustomData as Required<TProstoParserNodeOptions>['initCustomData'],
+            onPop: this.options.onPop as Required<TProstoParserNodeOptions<T>>['onPop'],
+            onMatch: this.options.onMatch as Required<TProstoParserNodeOptions<T>>['onMatch'],
+            onAppendContent: this.options.onAppendContent as Required<TProstoParserNodeOptions<T>>['onAppendContent'],
+            onAfterChildParse: this.options.onAfterChildParse as Required<TProstoParserNodeOptions<T>>['onAfterChildParse'],
+            onBeforeChildParse: this.options.onBeforeChildParse as Required<TProstoParserNodeOptions<T>>['onBeforeChildParse'],
+            initCustomData: this.options.initCustomData as Required<TProstoParserNodeOptions<T>>['initCustomData'],
+            absorbs: this.options.absorbs as Required<TProstoParserNodeOptions<T>>['absorbs'],
         }
     }
 
@@ -62,7 +62,7 @@ export class ProstoParserNode<T extends TGenericCustomDataType = TDefaultCustomD
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public beforeOnAppendContent(s: string | ProstoParserNodeContext<T>['content'], data: TPorstoParserCallbackData<T>): string | ProstoParserNodeContext<T>['content'] {
+    public beforeOnAppendContent(s: string, data: TPorstoParserCallbackData<T>): string {
         // to be overriden
         return s
     }

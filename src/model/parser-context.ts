@@ -122,8 +122,9 @@ export class ProstoParserContext {
         const parentContext = this.stack.pop()
         this.context.fireOnPop()
         if (parentContext) {
-            this.context.appendOrMergeTo(parentContext)
+            // this.context.appendOrMergeTo(parentContext)
             parentContext.fireAfterChildParse(this.context)
+            parentContext.fireAbsorb(this.context)
             this.context.cleanup()
             const node = this.context.node
             this.context = parentContext
@@ -140,7 +141,7 @@ export class ProstoParserContext {
         const ctx = newNode.createContext(this.index, this.stack.length + 1, this)
         ctx.content = content
         this.context.fireBeforeChildParse(ctx)
-        this.context.content.push(ctx)
+        this.context.pushChild(ctx)
         this.stack.push(this.context)
         this.hoistManager.addHoistOptions(this.context)
         this.context = ctx
@@ -192,7 +193,7 @@ export class ProstoParserContext {
         if (this.pos > 0) {
             const { row, col } = this.getPosition(-bottomBackOffset)
             console.error(banner + __DYE_RED_BRIGHT__, message, __DYE_RESET__)
-            console.log(this.context.toTree({ childrenLimit: 3, showLast: true, level: 2 }))
+            console.log(this.context.toTree({ childrenLimit: 13, showLast: true, level: 12 }))
             console.error(renderCodeFragment(this.src.split('\n'), {
                 row: this.context.startPos.row,
                 error: this.context.startPos.col - topBackOffset,

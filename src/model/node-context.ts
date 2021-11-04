@@ -3,7 +3,7 @@ import { ProstoParserNode } from './node'
 import { ProstoParserNodeBase } from './node-base'
 import { ProstoParserContext } from './parser-context'
 import { parserTree } from '../tree'
-import { TDefaultCustomDataType, TGenericCustomDataType, TPorstoParserCallbackData, TPorstoParserCallbackDataMatched, TSearchToken } from '..'
+import { TDefaultCustomDataType, TGenericCustomDataType, TMapContentRules, TPorstoParserCallbackData, TPorstoParserCallbackDataMatched, TSearchToken } from '..'
 import { TProstoTreeRenderOptions } from '@prostojs/tree'
 
 export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefaultCustomDataType> extends ProstoParserNodeBase<T> {
@@ -104,31 +104,25 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         return tokens
     }
 
-    public appendContent(input: string | ProstoParserNodeContext<T>['content']) {
+    public appendContent(input: string) {
         let s = input
         this.endPos = this.parserContext.getPosition()
-        if (typeof s === 'string') {
-            let { skip, bad } = this.getConstraintTokens()
-            skip = skip ? new RegExp(skip.source, skip.flags + 'g') : skip
-            bad = bad ? new RegExp(bad.source, bad.flags + 'g') : bad
-            if (skip) {
-                s = s.replace(skip, '')
-            }
-            if (bad) {
-                const m = bad.exec(s)
-                if (m) {
-                    this.parserContext.jump(m.index)
-                    this.parserContext.panic(`The token "${ m[0].replace(/"/g, '\\"') }" is not allowed in "${ this.node.name }".`)
-                }
+        let { skip, bad } = this.getConstraintTokens()
+        skip = skip ? new RegExp(skip.source, skip.flags + 'g') : skip
+        bad = bad ? new RegExp(bad.source, bad.flags + 'g') : bad
+        if (skip) {
+            s = s.replace(skip, '')
+        }
+        if (bad) {
+            const m = bad.exec(s)
+            if (m) {
+                this.parserContext.jump(m.index)
+                this.parserContext.panic(`The token "${ m[0].replace(/"/g, '\\"') }" is not allowed in "${ this.node.name }".`)
             }
         }
         s = this.fireOnAppendContent(s)
         if (s) {
-            if (typeof s === 'string') {
-                this.content.push(s)
-            } else {
-                this.content.push(...s)
-            }
+            this.content.push(s)
         }
     }
 
@@ -138,24 +132,55 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         this.options = null as unknown as TProstoParserNodeOptions<T>
     }
 
-    public appendOrMergeTo(parentContext: ProstoParserNodeContext) {
-        if (parentContext && this.options.mergeWith) {
-            const parentNode = parentContext.node
-            for (let i = 0; i < this.options.mergeWith.length; i++) {
-                const { parent, join } = this.options.mergeWith[i]
-                const mergeWith = [parent].flat().map(item => typeof item === 'object' ? item.id : item)
-                if (mergeWith[0] === '*' || mergeWith.includes(parentNode.id)) {
-                    parentContext.content = parentContext.content.slice(0, parentContext.content.length - 1)
-                    if (join) {
-                        if (this.content.length === 1 && typeof this.content[0] === 'string') {
-                            parentContext.appendContent(this.content[0])
-                        } else {
-                            parentContext.appendContent(this.content)
-                        }
-                    } else {
-                        parentContext.content.push(...this.content)
+    // public appendOrMergeTo(parentContext: ProstoParserNodeContext) {
+    //     if (parentContext && this.options.mergeWith) {
+    //         const parentNode = parentContext.node
+    //         for (let i = 0; i < this.options.mergeWith.length; i++) {
+    //             const { parent, join } = this.options.mergeWith[i]
+    //             const mergeWith = [parent].flat().map(item => typeof item === 'object' ? item.id : item)
+    //             if (mergeWith[0] === '*' || mergeWith.includes(parentNode.id)) {
+    //                 parentContext.content = parentContext.content.slice(0, parentContext.content.length - 1)
+    //                 if (join) {
+    //                     if (this.content.length === 1 && typeof this.content[0] === 'string') {
+    //                         parentContext.appendContent(this.content[0])
+    //                     } else {
+    //                         parentContext.appendContent(this.content)
+    //                     }
+    //                 } else {
+    //                     parentContext.content.push(...this.content)
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    
+    public pushChild(child: ProstoParserNodeContext) {
+        const absorbRule = this.options.absorbs && this.options.absorbs[child.node.id]
+        if (!absorbRule) {
+            this.content.push(child)
+        }
+    }
+
+    public fireAbsorb(child: ProstoParserNodeContext) {
+        const absorbRule = this.options.absorbs && this.options.absorbs[child.node.id]
+        if (absorbRule) {
+            // remove this child from content
+            // this.content.pop()
+            switch (absorbRule) {
+                case 'append':
+                    this.content.push(...child.content)
+                    break
+                case 'join':
+                    this.appendContent(child.content.join(''))
+                    break
+                default:
+                    const [action, target] = absorbRule.split('->')
+                    const cd = this.getCustomData<T>()
+                    if (action === 'copy') {
+                        cd[target as keyof T] = child.content as unknown as T[keyof T]
+                    } else if (action === 'join') {
+                        cd[target as keyof T] = child.content.join('') as unknown as T[keyof T]
                     }
-                }
             }
         }
     }
@@ -173,7 +198,11 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
             // mapping named groups to customData
             const cd = this.getCustomData<Record<string, unknown>>()
             for (const [key, value] of Object.entries(matched.groups)) {
-                cd[key] = value
+                if (key === 'content') {
+                    this.appendContent(value)
+                } else {
+                    cd[key] = value
+                }
             }
         }
     }
@@ -222,7 +251,7 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         }
     }
 
-    public fireOnAppendContent(s: string | ProstoParserNodeContext<T>['content']): string | ProstoParserNodeContext<T>['content'] {
+    public fireOnAppendContent(s: string): string {
         let _s = s
         const data: TPorstoParserCallbackData<T> = this.parserContext.getCallbackData()
         _s = this.node.beforeOnAppendContent(_s, data)
@@ -248,10 +277,24 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
             Object.keys(targetNodeOptions.mapContent).forEach((key) => {
                 const keyOfT: keyof T = key as keyof T
                 if (targetNodeOptions.mapContent && targetNodeOptions.mapContent[keyOfT]) {
-                    this._customData[keyOfT] = targetNodeOptions.mapContent[keyOfT](this.content) as T[keyof T]
+                    const mapRule = targetNodeOptions.mapContent[keyOfT]
+                    if (typeof mapRule === 'function') {
+                        this._customData[keyOfT] = mapRule(this.content) as T[keyof T]
+                    } else {
+                        const key: TMapContentRules = mapRule
+                        this._customData[keyOfT] = this.mapContentRules[key](this.content) as T[keyof T]
+                    }
                 }
             })
         }
     }
-}
 
+    mapContentRules: { [key in TMapContentRules]: ((content: ProstoParserNodeContext<T>['content']) => unknown)} = {
+        'first': (content) => content[0],
+        'shift': (content) => content.shift(),
+        'pop': (content) => content.pop(),
+        'last': (content) => content[content.length - 1],
+        'join': (content) => content.join(''),
+        'join-clear': (content) => content.splice(0).join(''),
+    }   
+}

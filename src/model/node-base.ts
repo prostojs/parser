@@ -1,6 +1,6 @@
 import { ProstoParserNodeContext } from '.'
-import { TDefaultCustomDataType, TGenericCustomDataType, TMapContentOptions } from '..'
-import { TPorstoParseNodeMergeOptions, TPorstoParserCallbackData,
+import { TAbsorbRules, TDefaultCustomDataType, TGenericCustomDataType, TMapContentOptions, TMapContentRule } from '..'
+import { TPorstoParserCallbackData,
     TProstoParserNodeOptions, TProstoParserHoistOptions, TProstoParserTokenDescripor } from '../p.types'
 import { escapeRegex } from '../utils'
 import { ProstoParserNode } from './node'
@@ -21,6 +21,20 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
         }
         return this
     }
+    
+    public addAbsorbs(node: ProstoParserNode | ProstoParserNode[], rule: TAbsorbRules<T> = 'append') {
+        this.options.absorbs = this.options.absorbs || {}
+        if (Array.isArray(node)) {
+            node.forEach(n => {
+                (this.options.absorbs as Required<TProstoParserNodeOptions<T>>['absorbs'])[n.id] = rule
+                this.addRecognizes(n)
+            })
+        } else {
+            this.options.absorbs[node.id] = rule
+            this.addRecognizes(node)
+        }
+        return this
+    }
 
     public addPopsAfterNode(...args: ProstoParserNode[]) {
         for (const node of args) {
@@ -29,12 +43,7 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
                 this.options.popsAfterNode.push(node)
             }
         }
-        return this
-    }
-
-    public addMergeWith(...args: TPorstoParseNodeMergeOptions[]) {
-        if (!this.options.mergeWith) this.options.mergeWith = []
-        this.options.mergeWith.push(...args)
+        this.addRecognizes(...args)
         return this
     }
 
@@ -81,12 +90,8 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
         return this
     }
 
-    public get mergeWith() {
-        return this.options.mergeWith || []
-    }
-
-    public set mergeWith(value: TProstoParserNodeOptions['mergeWith'] | undefined) {
-        this.options.mergeWith = value
+    public get absorbs() {
+        return this.options.absorbs
     }
 
     public get badToken() {
@@ -125,7 +130,7 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
         return this.options.mapContent
     }
 
-    public mapContent(key: keyof T, value: (content: ProstoParserNodeContext<T>['content']) => unknown) {
+    public mapContent(key: keyof T, value: TMapContentRule<T>) {
         this.options.mapContent = this.options.mapContent || {} as TMapContentOptions<T>
         this.options.mapContent[key] = value
         return this
@@ -202,11 +207,6 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
         return this
     }
     
-    public clearMergeWith() {
-        delete this.options.mergeWith
-        return this
-    }
-    
     public clearBadToken() {
         delete this.options.badToken
         return this
@@ -216,9 +216,28 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
         delete this.options.skipToken
         return this
     }
+
+    public clearAbsorbs(node?: ProstoParserNode | ProstoParserNode[]) {
+        if (this.options.absorbs) {
+            if (node && Array.isArray(node)) {
+                for (const n of node) {
+                    delete this.options.absorbs[n.id]
+                }
+            } else if (node) {
+                delete this.options.absorbs[node.id]
+            } else {
+                this.options.absorbs = {}
+            }
+        }
+        return this
+    }
     
-    public clearRecognizes() {
-        delete this.options.recognizes
+    public clearRecognizes(...args: ProstoParserNode[]) {
+        if (args.length) {
+            this.options.recognizes = this.options.recognizes?.filter(n => !args.includes(n))
+        } else {
+            this.options.recognizes = []
+        }
         return this
     }
     

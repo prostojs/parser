@@ -2,19 +2,30 @@ import { ProstoParserNode } from './model/node'
 import { ProstoParserNodeContext } from './model/node-context'
 import { ProstoParserContext } from './model/parser-context'
 
-export interface TProstoParserHoistOptions<T extends TGenericCustomDataType = TDefaultCustomDataType, T2 extends TGenericCustomDataType = TDefaultCustomDataType> {
-    node: ProstoParserNode<T2>
-    as: keyof T
+type MapRule<CustData> = '' | 'content.join' | 'customData' | ((ctx: ProstoParserNodeContext<CustData>) => unknown)
+type MapRuleTyped<CustData, ChildData> = keyof ChildData extends string ? MapRule<CustData> | `customData.${ keyof ChildData }` : MapRule<CustData>
+
+export interface TProstoParserHoistOptions<CustData extends TGenericCustomDataType = TDefaultCustomDataType, ChildData extends TGenericCustomDataType = TDefaultCustomDataType> {
+    node: ProstoParserNode<ChildData>
+    as: keyof CustData
     onConflict?: 'error' | 'overwrite' | 'ignore'
-    mapRule?: keyof T2 extends string ? '' | 'content.join' | `customData.${ keyof T2 }` : '' | 'content.join'
+    mapRule?: MapRuleTyped<CustData, ChildData>
     asArray?: boolean
     deep?: number | boolean
     removeChildFromContent?: boolean
-    map?: (ctx: ProstoParserNodeContext<T>) => unknown
 }
 
+export type TAbsorbRules<ChildData> = keyof ChildData extends string ? 'append' | 'join' | `copy->${ keyof ChildData }` | `join->${ keyof ChildData }` : 'append' | 'join'
+
+export interface TProstoParserAbsorbOptions<T> {
+    [nodeId: number]: TAbsorbRules<T>
+}
+
+export type TMapContentRules = 'first' | 'last' | 'join' | 'join-clear' | 'shift' | 'pop'
+export type TMapContentRule<T> = ((content: ProstoParserNodeContext<T>['content']) => unknown) | TMapContentRules
+
 export type TMapContentOptions<T extends TGenericCustomDataType = TDefaultCustomDataType> = {
-    [key in keyof T]: (content: ProstoParserNodeContext<T>['content']) => unknown
+    [key in keyof T]: TMapContentRule<T>
 }
 
 export interface TProstoParserNodeOptions<T extends TGenericCustomDataType = TDefaultCustomDataType> {
@@ -24,7 +35,7 @@ export interface TProstoParserNodeOptions<T extends TGenericCustomDataType = TDe
     endsWith?: TProstoParserTokenDescripor<T>
     popsAfterNode?: ProstoParserNode[]
     popsAtEOFSource?: boolean
-    mergeWith?: TPorstoParseNodeMergeOptions[]
+    absorbs?: TProstoParserAbsorbOptions<T>
     badToken?: string | string[] | RegExp,
     skipToken?: string | string[] | RegExp,
     recognizes?: ProstoParserNode[]
@@ -32,15 +43,10 @@ export interface TProstoParserNodeOptions<T extends TGenericCustomDataType = TDe
     mapContent?: TMapContentOptions<T>,
     onPop?: ((data: TPorstoParserCallbackData<T>) => void)
     onMatch?: ((data: TPorstoParserCallbackDataMatched<T>) => void)
-    onAppendContent?: ((s: string | ProstoParserNodeContext<T>['content'], data: TPorstoParserCallbackData<T>) => string | ProstoParserNodeContext<T>['content'])
+    onAppendContent?: ((s: string, data: TPorstoParserCallbackData<T>) => string)
     onBeforeChildParse?: ((childContext: ProstoParserNodeContext, data: TPorstoParserCallbackData<T>) => void)
     onAfterChildParse?: ((childContext: ProstoParserNodeContext, data: TPorstoParserCallbackData<T>) => void)
     initCustomData?: () => T
-}
-
-export interface TPorstoParseNodeMergeOptions {
-    parent: ProstoParserNode | ProstoParserNode[] | '*'
-    join?: boolean
 }
 
 export interface TProstoParserTokenDescripor<T extends TGenericCustomDataType = TDefaultCustomDataType> {
