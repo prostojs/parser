@@ -1,6 +1,6 @@
 {
   "name": "@prostojs/parser",
-  "version": "0.4.12",
+  "version": "0.5.0",
   "description": "Parse anything",
   "main": "index.js",
   "module": "dist/parser.esm-bundler.js",
