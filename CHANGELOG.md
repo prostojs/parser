@@ -1,3 +1,12 @@
+## [0.5.1](https://github.com/prostojs/parser/compare/v0.5.0...v0.5.1) (2021-11-04)
+
+
+### Features
+
+* pushNewContext returns new context ([dbca3ba](https://github.com/prostojs/parser/commit/dbca3ba563aa895c2a8dd7c9e537e25806f821e8))
+
+
+
 # [0.5.0](https://github.com/prostojs/parser/compare/v0.4.12...v0.5.0) (2021-11-04)
 
 
