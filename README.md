@@ -168,8 +168,8 @@ const valueNode = new BasicNode<{ quote: string }>({
     tokenOE: 'omit-omit',
 })
 
-// Using BasicNode with typed customData for `unquotedValueNode`:
-const unquotedValueNode = new BasicNode<{ quote: string }>({
+// Using BasicNode for `unquotedValueNode`:
+const unquotedValueNode = new BasicNode({
     label: 'value',
     icon: '=',
     // This time we use special name `content` for capturing group
