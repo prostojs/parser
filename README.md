@@ -120,7 +120,7 @@ const commentNode = new BasicNode({
 ```
 
 5. Let's get to a little bit more advanced stuff.
-The string node can start with `'`, `"` or "`" quote (not really in html, but let's cover this case).
+The string node can start with `'`, `"` or \` quote (not really in html, but let's cover this case).
 And we want to ignore the backslashed quote inside the node: `'text \\'escaped\\''`.
 
     This time we will pass a `customData` type (each node can have a custom data in it) with `{ quote: string }` type. We're doing so to keep the starting quote in order to properly match the ending quote.
