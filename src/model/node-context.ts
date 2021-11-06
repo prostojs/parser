@@ -43,7 +43,7 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         this._icon = this.options.icon || '◦'
         this.parserContext = parserContext || new ProstoParserContext(this)
         if (parserContext) {
-            this.parent = parserContext.fromStack() || parserContext.root
+            this.parent = parserContext.context || parserContext.root
         }
         this.startPos = this.parserContext.getPosition()
         this.endPos = this.parserContext.getPosition()
