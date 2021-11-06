@@ -1,3 +1,12 @@
+## [0.5.3](https://github.com/prostojs/parser/compare/v0.5.2...v0.5.3) (2021-11-06)
+
+
+### Bug Fixes
+
+* parent context ([06de3c1](https://github.com/prostojs/parser/commit/06de3c13575de7c367fc229dfe0ffec172651049))
+
+
+
 ## [0.5.2](https://github.com/prostojs/parser/compare/v0.5.1...v0.5.2) (2021-11-06)
 
 
