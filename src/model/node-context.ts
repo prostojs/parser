@@ -27,11 +27,13 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
 
     protected options: TProstoParserNodeOptions<T>
 
+    public readonly parent?: ProstoParserNodeContext
+
     protected getOptions(): TProstoParserNodeOptions<T> {
         return this.options as Required<TProstoParserNodeOptions<T>>
     }
 
-    constructor(protected readonly _node: ProstoParserNode<T>, public readonly index: number, public readonly level: number, rootContext?: ProstoParserContext) {
+    constructor(protected readonly _node: ProstoParserNode<T>, public readonly index: number, public readonly level: number, parserContext?: ProstoParserContext) {
         super()
         this.options = _node.getOptions()
         if (this.options.initCustomData) {
@@ -39,9 +41,27 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         }
         this._label = this.options.label || ''
         this._icon = this.options.icon || '◦'
-        this.parserContext = rootContext || new ProstoParserContext(this)
+        this.parserContext = parserContext || new ProstoParserContext(this)
+        if (parserContext) {
+            this.parent = parserContext.fromStack() || parserContext.root
+        }
         this.startPos = this.parserContext.getPosition()
         this.endPos = this.parserContext.getPosition()
+    }
+
+    public getPrevNode(n = 1): string | ProstoParserNodeContext | void {
+        if (this.parent) {
+            const index = this.parent.content.findIndex(n => n === this) - n
+            if (index >=0) return this.parent.content[index]
+        }
+    }
+
+    public getPrevContext(n = 1): ProstoParserNodeContext | void {
+        if (this.parent) {
+            const contexts = this.parent.content.filter(n => n instanceof ProstoParserNodeContext)
+            const index = contexts.findIndex(n => n === this) - n
+            if (index >=0) return contexts[index] as ProstoParserNodeContext
+        }
     }
 
     public set icon(value: string) {
@@ -131,28 +151,6 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         // when we don't need it any longer
         this.options = null as unknown as TProstoParserNodeOptions<T>
     }
-
-    // public appendOrMergeTo(parentContext: ProstoParserNodeContext) {
-    //     if (parentContext && this.options.mergeWith) {
-    //         const parentNode = parentContext.node
-    //         for (let i = 0; i < this.options.mergeWith.length; i++) {
-    //             const { parent, join } = this.options.mergeWith[i]
-    //             const mergeWith = [parent].flat().map(item => typeof item === 'object' ? item.id : item)
-    //             if (mergeWith[0] === '*' || mergeWith.includes(parentNode.id)) {
-    //                 parentContext.content = parentContext.content.slice(0, parentContext.content.length - 1)
-    //                 if (join) {
-    //                     if (this.content.length === 1 && typeof this.content[0] === 'string') {
-    //                         parentContext.appendContent(this.content[0])
-    //                     } else {
-    //                         parentContext.appendContent(this.content)
-    //                     }
-    //                 } else {
-    //                     parentContext.content.push(...this.content)
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
     
     public pushChild(child: ProstoParserNodeContext) {
         const absorbRule = this.options.absorbs && this.options.absorbs[child.node.id]
@@ -180,6 +178,8 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
                         cd[target as keyof T] = child.content as unknown as T[keyof T]
                     } else if (action === 'join') {
                         cd[target as keyof T] = child.content.join('') as unknown as T[keyof T]
+                    } else {
+                        this.parserContext.panic(`Absorb action "${ action }" is not supported.`)
                     }
             }
         }

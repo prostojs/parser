@@ -28,7 +28,7 @@ export class ProstoParserContext {
     
     public readonly hoistManager = new ProstoHoistManager()
 
-    constructor(protected readonly root: ProstoParserNodeContext) {
+    constructor(public readonly root: ProstoParserNodeContext) {
         this.context = root
     }
 
