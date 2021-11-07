@@ -8,7 +8,7 @@ const styles = {
     boolean: (s: string) => __DYE_BLUE_BRIGHT__ + s + __DYE_COLOR_OFF__,
     booleanDim: (s: string) => __DYE_BLUE_BRIGHT__ + __DYE_DIM__ + s + __DYE_COLOR_OFF__ + __DYE_DIM_OFF__,
     underscore: (s: string) => __DYE_UNDERSCORE__ + s + __DYE_UNDERSCORE_OFF__,
-    values: (s: string | number) => (typeof s === 'string' ? __DYE_CYAN_BRIGHT__ : __DYE_YELLOW_BRIGHT__) + s.toString() + __DYE_COLOR_OFF__,
+    values: (s: string | number) => (typeof s === 'string' ? __DYE_CYAN_BRIGHT__ : __DYE_YELLOW_BRIGHT__) + cut(s.toString(), 30) + __DYE_COLOR_OFF__,
     nodeDim: (s: string) => __DYE_YELLOW__ + __DYE_DIM__ + s + __DYE_COLOR_OFF__ + __DYE_DIM_OFF__,
     node: (s: string) => __DYE_YELLOW__ + s + __DYE_COLOR_OFF__,
 }
@@ -19,11 +19,7 @@ export const parserTree: ProstoTree<ProstoParserNodeContext | string | 0> = new 
     children: 'content',
     renderLabel: (context) => {
         if (typeof context === 'string') {
-            let s = context.replace(/\n/g, '\\n')
-            if (s.length > stringOutputLimit) {
-                s = s.slice(0, stringOutputLimit) + __DYE_YELLOW__ + '…' + __DYE_GREEN__
-            }
-            return styles.text('«' + s + '»')
+            return styles.text('«' + cut(context, stringOutputLimit) + __DYE_GREEN__ + '»')
         } else if (typeof context === 'object' && context instanceof ProstoParserNodeContext) {
             let keys = ''
             const data = context.getCustomData<Record<string, unknown>>()
@@ -45,3 +41,9 @@ export const parserTree: ProstoTree<ProstoParserNodeContext | string | 0> = new 
         return ''
     },
 })
+
+function cut(s: string, n: number): string {
+    const c = s.replace(/\n/g, '\\n')
+    if (c.length <= n) return c
+    return c.slice(0, n) + __DYE_YELLOW__ + '…'
+}
