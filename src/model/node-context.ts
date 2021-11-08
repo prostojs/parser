@@ -6,6 +6,7 @@ import { parserTree } from '../tree'
 import { TDefaultCustomDataType, TGenericCustomDataType, TMapContentRules, TPorstoParserCallbackData, TPorstoParserCallbackDataMatched, TSearchToken } from '..'
 import { TProstoTreeRenderOptions } from '@prostojs/tree'
 
+/** @public */
 export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefaultCustomDataType> extends ProstoParserNodeBase<T> {
     public content: (string | ProstoParserNodeContext)[] = []
 
@@ -47,6 +48,44 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         }
         this.startPos = this.parserContext.getPosition()
         this.endPos = this.parserContext.getPosition()
+    }
+
+    public contentCopiedTo?: keyof T
+
+    /**
+     * Extracts the tree of Custom Data type with no 
+     * ProstoParserNodeContext.
+     * 
+     * @returns {Array} Array of (T | string)
+     */
+    public extractCustomDataTree<TreeType = (T | string)[]>(): TreeType {
+        let content = this.content
+        if (this.contentCopiedTo) {
+            content = this.customData[this.contentCopiedTo] as unknown as typeof this.content
+        }
+        if (Array.isArray(content)) {
+            return content.map(c => {
+                if (typeof c === 'string') {
+                    return c
+                } else {
+                    return extract(c)
+                }
+            }) as unknown as TreeType
+        } else {
+            const c = content as ProstoParserNodeContext
+            if (c instanceof ProstoParserNodeContext) {
+                return extract(c)
+            } else {
+                return content
+            }
+        }
+        function extract(c: ProstoParserNodeContext) {
+            const cd = { ...c.getCustomData<Record<string, unknown>>() }
+            if (c.contentCopiedTo) {
+                cd[c.contentCopiedTo as keyof typeof cd] = c.extractCustomDataTree()
+            }
+            return cd as unknown as TreeType
+        }
     }
 
     public getPrevNode(n = 1): string | ProstoParserNodeContext | void {
@@ -281,20 +320,25 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
                     if (typeof mapRule === 'function') {
                         this._customData[keyOfT] = mapRule(this.content) as T[keyof T]
                     } else {
-                        const key: TMapContentRules = mapRule
-                        this._customData[keyOfT] = this.mapContentRules[key](this.content) as T[keyof T]
+                        const ruleKey: TMapContentRules = mapRule
+                        if (ruleKey === 'copy') this.contentCopiedTo = keyOfT
+                        this._customData[keyOfT] = this.mapContentRules[ruleKey](this.content) as T[keyof T]
+                    }
+                    if (!this.contentCopiedTo && (typeof mapRule === 'function' || ['first', 'shift', 'pop', 'last'].includes(mapRule as string))) {
+                        this.contentCopiedTo = keyOfT
                     }
                 }
             })
         }
     }
 
-    mapContentRules: { [key in TMapContentRules]: ((content: ProstoParserNodeContext<T>['content']) => unknown)} = {
+    protected mapContentRules: { [key in TMapContentRules]: ((content: ProstoParserNodeContext<T>['content']) => unknown)} = {
         'first': (content) => content[0],
         'shift': (content) => content.shift(),
         'pop': (content) => content.pop(),
         'last': (content) => content[content.length - 1],
         'join': (content) => content.join(''),
         'join-clear': (content) => content.splice(0).join(''),
+        'copy': (content) => content,
     }   
 }

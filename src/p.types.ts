@@ -21,7 +21,7 @@ export interface TProstoParserAbsorbOptions<T> {
     [nodeId: number]: TAbsorbRules<T>
 }
 
-export type TMapContentRules = 'first' | 'last' | 'join' | 'join-clear' | 'shift' | 'pop'
+export type TMapContentRules = 'first' | 'last' | 'join' | 'join-clear' | 'shift' | 'pop' | 'copy'
 export type TMapContentRule<T> = ((content: ProstoParserNodeContext<T>['content']) => unknown) | TMapContentRules
 
 export type TMapContentOptions<T extends TGenericCustomDataType = TDefaultCustomDataType> = {

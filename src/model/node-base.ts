@@ -130,7 +130,7 @@ export abstract class ProstoParserNodeBase<T extends TGenericCustomDataType = TD
         return this.options.mapContent
     }
 
-    public mapContent(key: keyof T, value: TMapContentRule<T>) {
+    public mapContent(key: keyof T, value: TMapContentRule<T> = 'copy') {
         this.options.mapContent = this.options.mapContent || {} as TMapContentOptions<T>
         this.options.mapContent[key] = value
         return this
