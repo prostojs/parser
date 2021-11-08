@@ -1,3 +1,12 @@
+## [0.5.5](https://github.com/prostojs/parser/compare/v0.5.4...v0.5.5) (2021-11-08)
+
+
+### Features
+
+* extract custom data tree ([05814bf](https://github.com/prostojs/parser/commit/05814bf75bc530644dc4456fd852fd79aa9fb76a))
+
+
+
 ## [0.5.4](https://github.com/prostojs/parser/compare/v0.5.3...v0.5.4) (2021-11-07)
 
 
