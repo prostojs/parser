@@ -81,7 +81,8 @@ export class ProstoParserContext {
                         this.context.appendContent(matchedToken)
                     } else if (!omit) {
                         toAppend = matchedToken
-                    } else if (!consume) {
+                    }
+                    if (!consume) {
                         this.jump(matchedToken.length)
                     } else if (consume) {
                         toAppend = ''
