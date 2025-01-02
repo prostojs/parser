@@ -81,9 +81,10 @@ export class ProstoParserContext {
                         this.context.appendContent(matchedToken)
                     } else if (!omit) {
                         toAppend = matchedToken
-                    }
-                    if (!consume) {
+                    } else if (!consume) {
                         this.jump(matchedToken.length)
+                    } else if (consume) {
+                        toAppend = ''
                     }
                     this.pushNewContext(closestToken.node, toAppend ? [toAppend] : [])
                     this.context.fireOnMatch(matched)
