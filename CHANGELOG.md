@@ -1,3 +1,13 @@
+## [0.5.9](https://github.com/prostojs/parser/compare/v0.5.8...v0.5.9) (2025-01-02)
+
+
+### Bug Fixes
+
+* fix consume option ([6601a87](https://github.com/prostojs/parser/commit/6601a8759ec77aaa10ffba915452bab8007bd374))
+* fix consume token option ([d70d8d5](https://github.com/prostojs/parser/commit/d70d8d5cae5806ab7ef4832c9c1efe2510c07d93))
+
+
+
 ## [0.5.8](https://github.com/prostojs/parser/compare/v0.5.7...v0.5.8) (2025-01-02)
 
 
