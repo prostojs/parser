@@ -1,3 +1,12 @@
+## [0.5.6](https://github.com/prostojs/parser/compare/v0.5.5...v0.5.6) (2025-01-02)
+
+
+### Bug Fixes
+
+* fix pop before child parse ([35c0340](https://github.com/prostojs/parser/commit/35c0340bd32574bb937a4444edeed2cf640a6be5))
+
+
+
 ## [0.5.5](https://github.com/prostojs/parser/compare/v0.5.4...v0.5.5) (2021-11-08)
 
 
