@@ -1,3 +1,12 @@
+## [0.5.8](https://github.com/prostojs/parser/compare/v0.5.7...v0.5.8) (2025-01-02)
+
+
+### Features
+
+* add consume option ([2f01307](https://github.com/prostojs/parser/commit/2f01307405b1706c3299cc90d0323c40eaca2eaf))
+
+
+
 ## [0.5.7](https://github.com/prostojs/parser/compare/v0.5.6...v0.5.7) (2025-01-02)
 
 

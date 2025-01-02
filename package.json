@@ -1,6 +1,6 @@
 {
   "name": "@prostojs/parser",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "description": "Parse anything",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
