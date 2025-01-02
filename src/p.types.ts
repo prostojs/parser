@@ -54,6 +54,7 @@ export interface TProstoParserTokenDescripor<T extends TGenericCustomDataType = 
     ignoreBackSlashed?: boolean
     omit?: boolean
     eject?: boolean
+    consume?: boolean
     onMatchToken?: (data: TPorstoParserCallbackDataMatched<T>) => boolean | { omit?: boolean, eject: boolean } | void
 }
 

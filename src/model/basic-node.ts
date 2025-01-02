@@ -2,8 +2,9 @@ import { ProstoParserNode, TDefaultCustomDataType, TGenericCustomDataType, TPros
 
 type TOmit = 'omit'
 type TEject = 'eject'
+type TConsume = 'consume'
 type TBackSlashIgnore = 'ignore'
-export type TOmitEjectShortcut = '' | `${ TOmit | TEject | '' }-${ TOmit | TEject | '' }`
+export type TOmitEjectShortcut = '' | `${ TOmit | TEject | TConsume | '' }-${ TOmit | TEject | TConsume | '' }`
 export type TBackSlashShortcut = '' | `${ TBackSlashIgnore | '' }-${ TBackSlashIgnore | '' }`
 
 export interface TBasicNodeOptions<T extends TGenericCustomDataType = TDefaultCustomDataType> {
@@ -26,11 +27,13 @@ export class BasicNode<T extends TGenericCustomDataType = TDefaultCustomDataType
         if (startsWith) {
             startsWith.omit = startOption === 'omit'
             startsWith.eject = startOption === 'eject'
+            startsWith.consume = startOption === 'consume'
             startsWith.ignoreBackSlashed = startBSlash === 'ignore'
         }
         if (endsWith) {
             endsWith.omit = endOption === 'omit'
             endsWith.eject = endOption === 'eject'
+            endsWith.consume = endOption === 'consume'
             endsWith.ignoreBackSlashed = endBSlash === 'ignore'
         }
         super({

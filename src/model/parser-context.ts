@@ -74,7 +74,7 @@ export class ProstoParserContext {
                 const matchedToken = matched[0]
                 if (closestToken.node) {
                     // matched child
-                    const { omit, eject, confirmed } = closestToken.node.fireNodeMatched(matched, this.getCallbackData(matched))
+                    const { omit, eject, consume, confirmed } = closestToken.node.fireNodeMatched(matched, this.getCallbackData(matched))
                     if (!confirmed) continue
                     let toAppend = ''
                     if (eject) {
@@ -82,7 +82,9 @@ export class ProstoParserContext {
                     } else if (!omit) {
                         toAppend = matchedToken
                     }
-                    this.jump(matchedToken.length)
+                    if (!consume) {
+                        this.jump(matchedToken.length)
+                    }
                     this.pushNewContext(closestToken.node, toAppend ? [toAppend] : [])
                     this.context.fireOnMatch(matched)
                     continue                    
