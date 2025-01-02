@@ -34,7 +34,7 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         return this.options as Required<TProstoParserNodeOptions<T>>
     }
 
-    constructor(protected readonly _node: ProstoParserNode<T>, public readonly index: number, public readonly level: number, parserContext?: ProstoParserContext) {
+    constructor(protected readonly _node: ProstoParserNode<T>, public readonly index: number, public level: number, parserContext?: ProstoParserContext) {
         super()
         this.options = _node.getOptions()
         if (this.options.initCustomData) {

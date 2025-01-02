@@ -141,6 +141,7 @@ export class ProstoParserContext {
         const ctx = newNode.createContext(this.index, this.stack.length + 1, this)
         ctx.content = content
         this.context.fireBeforeChildParse(ctx)
+        ctx.level = this.stack.length + 1 // update level in case if pop() was called during onBeforeChild hook
         this.context.pushChild(ctx)
         this.stack.push(this.context)
         this.hoistManager.addHoistOptions(this.context)

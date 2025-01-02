@@ -72,7 +72,7 @@ function renderLine(line: string, index: number | string, error?: number, style:
 function renderLineNumber (i?: number | string, isError = false, bold = false) {
     let s = '      '
     const sep = i === '———'
-    if (i && i > 0 || typeof i === 'string') {
+    if (i && Number(i) > 0 || typeof i === 'string') {
         s = '      ' + String(i)
     }
     s = s.slice(s.length - 5)

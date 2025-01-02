@@ -2,8 +2,8 @@ import { ProstoParserNode } from './model/node'
 import { ProstoParserNodeContext } from './model/node-context'
 import { ProstoParserContext } from './model/parser-context'
 
-type MapRule<CustData> = '' | 'content.join' | 'customData' | ((ctx: ProstoParserNodeContext<CustData>) => unknown)
-type MapRuleTyped<CustData, ChildData> = keyof ChildData extends string ? MapRule<CustData> | `customData.${ keyof ChildData }` : MapRule<CustData>
+type MapRule<CustData extends TGenericCustomDataType> = '' | 'content.join' | 'customData' | ((ctx: ProstoParserNodeContext<CustData>) => unknown)
+type MapRuleTyped<CustData extends TGenericCustomDataType, ChildData> = keyof ChildData extends string ? MapRule<CustData> | `customData.${ keyof ChildData }` : MapRule<CustData>
 
 export interface TProstoParserHoistOptions<CustData extends TGenericCustomDataType = TDefaultCustomDataType, ChildData extends TGenericCustomDataType = TDefaultCustomDataType> {
     node: ProstoParserNode<ChildData>
@@ -22,7 +22,7 @@ export interface TProstoParserAbsorbOptions<T> {
 }
 
 export type TMapContentRules = 'first' | 'last' | 'join' | 'join-clear' | 'shift' | 'pop' | 'copy'
-export type TMapContentRule<T> = ((content: ProstoParserNodeContext<T>['content']) => unknown) | TMapContentRules
+export type TMapContentRule<T extends TGenericCustomDataType> = ((content: ProstoParserNodeContext<T>['content']) => unknown) | TMapContentRules
 
 export type TMapContentOptions<T extends TGenericCustomDataType = TDefaultCustomDataType> = {
     [key in keyof T]: TMapContentRule<T>

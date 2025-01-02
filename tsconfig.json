@@ -21,7 +21,6 @@
         "noUnusedLocals": false,
         "noLib": false,
         "removeComments": true,
-        "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "types": ["jest", "node"],
     },
