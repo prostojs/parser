@@ -27,7 +27,7 @@ const dyeColors = [
     'black',
 ]
 
-const external = ['url', 'crypto', 'stream', 'packages/*/src', 'http', 'path']
+const external = ['url', 'crypto', 'stream', 'packages/*/src', 'http', 'path', '@prostojs/tree']
 
 const replacePlugin = replace({
     values: {

@@ -55,8 +55,8 @@ describe('ProstoParser', () => {
             .toTree()
         console.log(tree)
         expect(dye.strip(tree)).toMatchInlineSnapshot(`
-"ROOT Static
-└─ ◦ Parameter key(variable) regex(([^\\/]*))
+"• ROOT Static
+└──• ◦ Parameter key(variable) regex(([^\\/]*))
 "
 `)
     })
@@ -67,17 +67,17 @@ describe('ProstoParser', () => {
             .toTree()
         console.log(tree)
         expect(dye.strip(tree)).toMatchInlineSnapshot(`
-"ROOT Static
-├─ «/test/»
-├─ ◦ Parameter key(name1) regex(([^\\/]*))
-├─ «-»
-├─ ◦ Parameter key(name2) regex((a(?:test(?:inside))b))
-├─ «/»
-├─ ◦ Wildcard regex((d)) key(*)
-├─ «/test/»
-├─ ◦ Wildcard key(*)
-├─ «/»
-└─ ◦ Parameter key(ending) regex(([^\\/]*))
+"• ROOT Static
+├──• «/test/»
+├──• ◦ Parameter key(name1) regex(([^\\/]*))
+├──• «-»
+├──• ◦ Parameter key(name2) regex((a(?:test(?:inside))b))
+├──• «/»
+├──• ◦ Wildcard regex((d)) key(*)
+├──• «/test/»
+├──• ◦ Wildcard key(*)
+├──• «/»
+└──• ◦ Parameter key(ending) regex(([^\\/]*))
 "
 `)
     })
@@ -276,75 +276,75 @@ describe('ProstoParser', () => {
         console.log(tree)
 
         expect(dye.strip(tree)).toMatchInlineSnapshot(`
-"ROOT
-├─ ◦ Document Type
-│  └─ «html»
-└─ html tag(html) endTag(html)
-   └─ ◦ inner
-      ├─ head tag(head) endTag(head)
-      │  └─ ◦ inner
-      │     ├─ meta tag(meta) isVoid☑
-      │     │  └─ = attribute key(charset) value(utf-8)
-      │     ├─ title tag(title) endTag(title)
-      │     │  └─ ◦ inner
-      │     │     └─ «My test page»
-      │     ├─ “ comment
-      │     │  └─ « First Comment »
-      │     └─ style tag(style) isText☑ endTag(style)
-      │        └─ «\\n                .bg-red {\\n                    background-color: red…»
-      └─ body tag(body) endTag(body)
-         └─ ◦ inner
-            ├─ “ comment
-            │  ├─ « <div>commented div »
-            │  ├─ ≈ string expression( value )
-            │  ├─ «: »
-            │  ├─ ≈ string expression( item.toUpperCase() )
-            │  └─ « </div> »
-            ├─ img tag(img) isVoid☑
-            │  ├─ = attribute key(src) value(images/firefox-icon.png)
-            │  └─ = attribute key(:alt) value('My test image ' + url)
-            ├─ div tag(div) endTag(div)
-            │  ├─ = attribute key(v-for) value(item of items)
-            │  └─ ◦ inner
-            │     ├─ a tag(a)
-            │     │  └─ = attribute key(:href) value(item)
-            │     └─ ≈ string expression( item )
-            ├─ span tag(span) endTag(span)
-            │  ├─ = attribute key(v-if) value(condition)
-            │  ├─ = attribute key(:class) value()
-            │  └─ ◦ inner
-            │     └─ «condition 1»
-            ├─ span tag(span) endTag(span)
-            │  ├─ = attribute key(v-else-if) value(a === 5)
-            │  └─ ◦ inner
-            │     └─ «condition 2»
-            ├─ span tag(span) endTag(span)
-            │  ├─ = attribute key(v-else)
-            │  └─ ◦ inner
-            │     └─ «condition 3»
-            ├─ div tag(div) endTag(div)
-            │  ├─ = attribute key(unquoted) value(value)
-            │  └─ ◦ inner
-            │     ├─ <![CDATA[
-            │     │  ├─ «This text <div /> »
-            │     │  ├─ ≈ string expression( a + 'b' )
-            │     │  └─ « </> contains a CEND ]]»
-            │     └─ <![CDATA[
-            │        └─ «>»
-            ├─ script tag(script) isText☑ endTag(script)
-            │  └─ «\\n                this is script <div> </div>\\n            »
-            ├─ p:prefixed tag(p:prefixed) endTag(p:prefixed)
-            │  └─ ◦ inner
-            └─ div tag(div) endTag(div)
-               ├─ = attribute key(dense) value(ab\\"de)
-               ├─ = attribute key(:data-id) value(d.id)
-               ├─ = attribute key(:data-count) value(d.count)
-               ├─ = attribute key(:data-weight) value(d.w)
-               ├─ = attribute key(:class) value(white ? 'white' : 'bg-white')
-               └─ ◦ inner
-                  ├─ «inner text start»
-                  ├─ ≈ string expression( 'so good \\' }}' )
-                  └─ «inner text end»
+"• ROOT
+├──• ◦ Document Type
+│  └──• «html»
+└──• html tag(html) endTag(html)
+   └──• ◦ inner
+      ├──• head tag(head) endTag(head)
+      │  └──• ◦ inner
+      │     ├──• meta tag(meta) isVoid☑
+      │     │  └──• = attribute key(charset) value(utf-8)
+      │     ├──• title tag(title) endTag(title)
+      │     │  └──• ◦ inner
+      │     │     └──• «My test page»
+      │     ├──• “ comment
+      │     │  └──• « First Comment »
+      │     └──• style tag(style) isText☑ endTag(style)
+      │        └──• «\\n                .bg-red {\\n                    background-color: red…»
+      └──• body tag(body) endTag(body)
+         └──• ◦ inner
+            ├──• “ comment
+            │  ├──• « <div>commented div »
+            │  ├──• ≈ string expression( value )
+            │  ├──• «: »
+            │  ├──• ≈ string expression( item.toUpperCase() )
+            │  └──• « </div> »
+            ├──• img tag(img) isVoid☑
+            │  ├──• = attribute key(src) value(images/firefox-icon.png)
+            │  └──• = attribute key(:alt) value('My test image ' + url)
+            ├──• div tag(div) endTag(div)
+            │  ├──• = attribute key(v-for) value(item of items)
+            │  └──• ◦ inner
+            │     ├──• a tag(a)
+            │     │  └──• = attribute key(:href) value(item)
+            │     └──• ≈ string expression( item )
+            ├──• span tag(span) endTag(span)
+            │  ├──• = attribute key(v-if) value(condition)
+            │  ├──• = attribute key(:class) value()
+            │  └──• ◦ inner
+            │     └──• «condition 1»
+            ├──• span tag(span) endTag(span)
+            │  ├──• = attribute key(v-else-if) value(a === 5)
+            │  └──• ◦ inner
+            │     └──• «condition 2»
+            ├──• span tag(span) endTag(span)
+            │  ├──• = attribute key(v-else)
+            │  └──• ◦ inner
+            │     └──• «condition 3»
+            ├──• div tag(div) endTag(div)
+            │  ├──• = attribute key(unquoted) value(value)
+            │  └──• ◦ inner
+            │     ├──• <![CDATA[
+            │     │  ├──• «This text <div /> »
+            │     │  ├──• ≈ string expression( a + 'b' )
+            │     │  └──• « </> contains a CEND ]]»
+            │     └──• <![CDATA[
+            │        └──• «>»
+            ├──• script tag(script) isText☑ endTag(script)
+            │  └──• «\\n                this is script <div> </div>\\n            »
+            ├──• p:prefixed tag(p:prefixed) endTag(p:prefixed)
+            │  └──• ◦ inner
+            └──• div tag(div) endTag(div)
+               ├──• = attribute key(dense) value(ab\\"de)
+               ├──• = attribute key(:data-id) value(d.id)
+               ├──• = attribute key(:data-count) value(d.count)
+               ├──• = attribute key(:data-weight) value(d.w)
+               ├──• = attribute key(:class) value(white ? 'white' : 'bg-white')
+               └──• ◦ inner
+                  ├──• «inner text start»
+                  ├──• ≈ string expression( 'so good \\' }}' )
+                  └──• «inner text end»
 "
 `)
     })
