@@ -56,7 +56,7 @@ describe('ProstoParser', () => {
         console.log(tree)
         expect(dye.strip(tree)).toMatchInlineSnapshot(`
 "ROOT Static
-└─ ◦ Parameter key(variable) regex(([^\\\\/]*))
+└─ ◦ Parameter key(variable) regex(([^\\/]*))
 "
 `)
     })
@@ -69,7 +69,7 @@ describe('ProstoParser', () => {
         expect(dye.strip(tree)).toMatchInlineSnapshot(`
 "ROOT Static
 ├─ «/test/»
-├─ ◦ Parameter key(name1) regex(([^\\\\/]*))
+├─ ◦ Parameter key(name1) regex(([^\\/]*))
 ├─ «-»
 ├─ ◦ Parameter key(name2) regex((a(?:test(?:inside))b))
 ├─ «/»
@@ -77,7 +77,7 @@ describe('ProstoParser', () => {
 ├─ «/test/»
 ├─ ◦ Wildcard key(*)
 ├─ «/»
-└─ ◦ Parameter key(ending) regex(([^\\\\/]*))
+└─ ◦ Parameter key(ending) regex(([^\\/]*))
 "
 `)
     })
@@ -291,7 +291,7 @@ describe('ProstoParser', () => {
       │     ├─ “ comment
       │     │  └─ « First Comment »
       │     └─ style tag(style) isText☑ endTag(style)
-      │        └─ «\\\\n                .bg-red {\\\\n                    background-color: red…»
+      │        └─ «\\n                .bg-red {\\n                    background-color: red…»
       └─ body tag(body) endTag(body)
          └─ ◦ inner
             ├─ “ comment
@@ -332,18 +332,18 @@ describe('ProstoParser', () => {
             │     └─ <![CDATA[
             │        └─ «>»
             ├─ script tag(script) isText☑ endTag(script)
-            │  └─ «\\\\n                this is script <div> </div>\\\\n            »
+            │  └─ «\\n                this is script <div> </div>\\n            »
             ├─ p:prefixed tag(p:prefixed) endTag(p:prefixed)
             │  └─ ◦ inner
             └─ div tag(div) endTag(div)
-               ├─ = attribute key(dense) value(ab\\\\\\"de)
+               ├─ = attribute key(dense) value(ab\\"de)
                ├─ = attribute key(:data-id) value(d.id)
                ├─ = attribute key(:data-count) value(d.count)
                ├─ = attribute key(:data-weight) value(d.w)
                ├─ = attribute key(:class) value(white ? 'white' : 'bg-white')
                └─ ◦ inner
                   ├─ «inner text start»
-                  ├─ ≈ string expression( 'so good \\\\' }}' )
+                  ├─ ≈ string expression( 'so good \\' }}' )
                   └─ «inner text end»
 "
 `)
