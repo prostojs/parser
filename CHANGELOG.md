@@ -1,3 +1,12 @@
+## [0.5.11](https://github.com/prostojs/parser/compare/v0.5.10...v0.5.11) (2025-01-04)
+
+
+### Bug Fixes
+
+* fix start pos ([a21582a](https://github.com/prostojs/parser/commit/a21582aa69a74ec1f5e3ee09f4bad2e353930032))
+
+
+
 ## [0.5.10](https://github.com/prostojs/parser/compare/v0.5.9...v0.5.10) (2025-01-04)
 
 
