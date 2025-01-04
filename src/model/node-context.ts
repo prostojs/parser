@@ -266,7 +266,7 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         if (!this.options.startsWith?.eject) {
             // fix start position
             const newPos = this.parserContext.getPosition(
-                this.parserContext.pos - matched.index,
+                matched.index - this.parserContext.pos,
             )
             this.startPos.col = newPos.col
             this.startPos.row = newPos.row
