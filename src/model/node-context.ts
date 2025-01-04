@@ -263,7 +263,16 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
     public fireOnMatch(matched: RegExpExecArray): void {
         this.mapNamedGroups(matched)
         const data: TPorstoParserCallbackDataMatched<T> = this.parserContext.getCallbackData(matched) as TPorstoParserCallbackDataMatched<T>
-        this.node.beforeOnMatch(data)
+        if (!this.options.startsWith?.eject) {
+            // fix start position
+            const newPos = this.parserContext.getPosition(
+                this.parserContext.pos - matched.index,
+            )
+            this.startPos.col = newPos.col
+            this.startPos.row = newPos.row
+            this.startPos.pos = newPos.pos
+        }
+        this.node.beforeOnMatch(data) 
         if (this.options.onMatch) {
             return this.options.onMatch(data)
         }

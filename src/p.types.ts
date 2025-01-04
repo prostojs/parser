@@ -55,7 +55,7 @@ export interface TProstoParserTokenDescripor<T extends TGenericCustomDataType = 
     omit?: boolean
     eject?: boolean
     consume?: boolean
-    onMatchToken?: (data: TPorstoParserCallbackDataMatched<T>) => boolean | { omit?: boolean, eject: boolean } | void
+    onMatchToken?: (data: TPorstoParserCallbackDataMatched<T>) => boolean | { omit?: boolean, eject?: boolean, consume?: boolean } | void
 }
 
 export interface TPorstoParserCallbackDataMatched<T extends TGenericCustomDataType = TDefaultCustomDataType> extends TPorstoParserCallbackData<T> {
