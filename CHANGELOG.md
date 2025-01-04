@@ -1,3 +1,12 @@
+## [0.5.10](https://github.com/prostojs/parser/compare/v0.5.9...v0.5.10) (2025-01-04)
+
+
+### Bug Fixes
+
+* fix start position ([add6803](https://github.com/prostojs/parser/commit/add680362f4aa77ab5901398340845eba3fb7735))
+
+
+
 ## [0.5.9](https://github.com/prostojs/parser/compare/v0.5.8...v0.5.9) (2025-01-02)
 
 
