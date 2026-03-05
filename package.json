@@ -1,6 +1,6 @@
 {
     "name": "@prostojs/parser-monorepo",
-    "version": "0.5.11",
+    "version": "0.6.0",
     "private": true,
     "description": "Parse anything — a composable, hooks-based parser toolkit",
     "license": "MIT",

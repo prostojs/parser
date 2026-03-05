@@ -1,6 +1,6 @@
 {
     "name": "@prostojs/parser",
-    "version": "0.5.11",
+    "version": "0.6.0",
     "description": "Parse anything — a composable, hooks-based parser toolkit",
     "keywords": [
         "parser",

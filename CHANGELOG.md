@@ -1,3 +1,7 @@
+# [0.6.0](https://github.com/prostojs/parser/compare/v0.5.11...v0.6.0) (2026-03-05)
+
+
+
 ## [0.5.11](https://github.com/prostojs/parser/compare/v0.5.10...v0.5.11) (2025-01-04)
 
 ### Bug Fixes
