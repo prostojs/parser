@@ -1,5 +1,18 @@
 import { defineConfig } from 'vitest/config'
+import { createDyeReplacements } from '@prostojs/dye/common'
 import pkg from './package.json'
+
+// createDyeReplacements returns values meant for rollup's replace plugin.
+// Some have proper \u001b escapes, others have raw ESC bytes — normalize them
+// to valid JS string literals for Vite/esbuild's define.
+const dyeDefine: Record<string, string> = {}
+for (const [key, value] of Object.entries(createDyeReplacements())) {
+    // Strip surrounding quotes, then re-stringify to get consistent escaping
+    const raw = value.slice(1, -1)
+    // Replace literal \u001b text with actual ESC byte before JSON.stringify re-escapes it
+    const normalized = raw.replace(/\\u001b/g, '\x1B')
+    dyeDefine[key] = JSON.stringify(normalized)
+}
 
 export default defineConfig({
     test: {
@@ -21,54 +34,6 @@ export default defineConfig({
         __ESM_BUNDLER__: true,
         __ESM_BROWSER__: false,
         __NODE_JS__: true,
-
-        // dye colors
-        __DYE_RESET__: JSON.stringify('\x1B[0m'),
-        __DYE_COLOR_OFF__: JSON.stringify('\x1B[39m'),
-        __DYE_BG_OFF__: JSON.stringify('\x1B[49m'),
-        __DYE_DIM__: JSON.stringify('\x1B[2m'),
-        __DYE_DIM_OFF__: JSON.stringify('\x1B[22m'),
-        __DYE_BOLD__: JSON.stringify('\x1B[1m'),
-        __DYE_BOLD_OFF__: JSON.stringify('\x1B[22m'),
-        __DYE_UNDERSCORE__: JSON.stringify('\x1B[4m'),
-        __DYE_UNDERSCORE_OFF__: JSON.stringify('\x1B[24m'),
-        __DYE_INVERSE__: JSON.stringify('\x1B[7m'),
-        __DYE_INVERSE_OFF__: JSON.stringify('\x1B[27m'),
-        __DYE_ITALIC__: JSON.stringify('\x1B[3m'),
-        __DYE_ITALIC_OFF__: JSON.stringify('\x1B[23m'),
-        __DYE_CROSSED__: JSON.stringify('\x1B[9m'),
-        __DYE_CROSSED_OFF__: JSON.stringify('\x1B[29m'),
-        __DYE_RED__: JSON.stringify('\x1B[31m'),
-        __DYE_BG_RED__: JSON.stringify('\x1B[41m'),
-        __DYE_RED_BRIGHT__: JSON.stringify('\x1B[91m'),
-        __DYE_BG_RED_BRIGHT__: JSON.stringify('\x1B[101m'),
-        __DYE_GREEN__: JSON.stringify('\x1B[32m'),
-        __DYE_BG_GREEN__: JSON.stringify('\x1B[42m'),
-        __DYE_GREEN_BRIGHT__: JSON.stringify('\x1B[92m'),
-        __DYE_BG_GREEN_BRIGHT__: JSON.stringify('\x1B[102m'),
-        __DYE_CYAN__: JSON.stringify('\x1B[36m'),
-        __DYE_BG_CYAN__: JSON.stringify('\x1B[46m'),
-        __DYE_CYAN_BRIGHT__: JSON.stringify('\x1B[96m'),
-        __DYE_BG_CYAN_BRIGHT__: JSON.stringify('\x1B[106m'),
-        __DYE_BLUE__: JSON.stringify('\x1B[34m'),
-        __DYE_BG_BLUE__: JSON.stringify('\x1B[44m'),
-        __DYE_BLUE_BRIGHT__: JSON.stringify('\x1B[94m'),
-        __DYE_BG_BLUE_BRIGHT__: JSON.stringify('\x1B[104m'),
-        __DYE_YELLOW__: JSON.stringify('\x1B[33m'),
-        __DYE_BG_YELLOW__: JSON.stringify('\x1B[43m'),
-        __DYE_YELLOW_BRIGHT__: JSON.stringify('\x1B[93m'),
-        __DYE_BG_YELLOW_BRIGHT__: JSON.stringify('\x1B[103m'),
-        __DYE_WHITE__: JSON.stringify('\x1B[37m'),
-        __DYE_BG_WHITE__: JSON.stringify('\x1B[47m'),
-        __DYE_WHITE_BRIGHT__: JSON.stringify('\x1B[97m'),
-        __DYE_BG_WHITE_BRIGHT__: JSON.stringify('\x1B[107m'),
-        __DYE_MAGENTA__: JSON.stringify('\x1B[35m'),
-        __DYE_BG_MAGENTA__: JSON.stringify('\x1B[45m'),
-        __DYE_MAGENTA_BRIGHT__: JSON.stringify('\x1B[95m'),
-        __DYE_BG_MAGENTA_BRIGHT__: JSON.stringify('\x1B[105m'),
-        __DYE_BLACK__: JSON.stringify('\x1B[30m'),
-        __DYE_BG_BLACK__: JSON.stringify('\x1B[40m'),
-        __DYE_BLACK_BRIGHT__: JSON.stringify('\x1B[90m'),
-        __DYE_BG_BLACK_BRIGHT__: JSON.stringify('\x1B[100m'),
+        ...dyeDefine,
     },
 })
