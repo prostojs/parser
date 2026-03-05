@@ -1,4 +1,7 @@
-import { TPorstoParserCallbackData, TPorstoParserCallbackDataMatched } from '../p.types'
+import {
+    TPorstoParserCallbackData,
+    TPorstoParserCallbackDataMatched,
+} from '../p.types'
 import { renderCodeFragment } from '../console-utils'
 import { ProstoHoistManager } from './hoist-manager'
 import { ProstoParserNode } from './node'
@@ -8,24 +11,27 @@ import { TGenericCustomDataType, TSearchToken } from '..'
 const banner = __DYE_RED__ + '[parser]' + __DYE_COLOR_OFF__
 
 export class ProstoParserContext {
-    protected nodes: Record<number, ProstoParserNode> = {} as Record<number, ProstoParserNode>
+    protected nodes: Record<number, ProstoParserNode> = {} as Record<
+        number,
+        ProstoParserNode
+    >
 
     public pos = 0
 
     public index = 0
-    
+
     public context: ProstoParserNodeContext
-        
+
     public behind: string = ''
-    
+
     public here: string = ''
-    
+
     public src: string = ''
 
     protected readonly stack: ProstoParserNodeContext[] = []
 
     protected l: number = 0
-    
+
     public readonly hoistManager = new ProstoHoistManager()
 
     constructor(public readonly root: ProstoParserNodeContext) {
@@ -33,8 +39,8 @@ export class ProstoParserContext {
     }
 
     public parse(src: string) {
-        this.src = src,
-        this.here = src,
+        this.src = src
+        this.here = src
         this.l = src.length
         const cache: Record<string, RegExpExecArray | null> = {}
 
@@ -74,7 +80,11 @@ export class ProstoParserContext {
                 const matchedToken = matched[0]
                 if (closestToken.node) {
                     // matched child
-                    const { omit, eject, consume, confirmed } = closestToken.node.fireNodeMatched(matched, this.getCallbackData(matched))
+                    const { omit, eject, consume, confirmed } =
+                        closestToken.node.fireNodeMatched(
+                            matched,
+                            this.getCallbackData(matched),
+                        )
                     if (!confirmed) continue
                     let toAppend = ''
                     if (eject) {
@@ -87,12 +97,19 @@ export class ProstoParserContext {
                     } else if (consume) {
                         toAppend = ''
                     }
-                    this.pushNewContext(closestToken.node, toAppend ? [toAppend] : [])
+                    this.pushNewContext(
+                        closestToken.node,
+                        toAppend ? [toAppend] : [],
+                    )
                     this.context.fireOnMatch(matched)
-                    continue                    
+                    continue
                 } else {
                     // matched end token
-                    const { omit, eject, confirmed } = this.context.fireNodeEndMatched(matched, this.getCallbackData(matched))
+                    const { omit, eject, confirmed } =
+                        this.context.fireNodeEndMatched(
+                            matched,
+                            this.getCallbackData(matched),
+                        )
                     if (!confirmed) continue
                     if (!eject && !omit) {
                         this.context.appendContent(matchedToken)
@@ -112,11 +129,14 @@ export class ProstoParserContext {
         }
 
         if (this.context !== this.root) {
-            while (this.context.getPopsAtEOFSource() && this.stack.length > 0) this.pop()
+            while (this.context.getPopsAtEOFSource() && this.stack.length > 0)
+                this.pop()
         }
 
         if (this.context !== this.root) {
-            this.panicBlock(`Unexpected end of the source string while parsing "${ this.context.node.name }" (${ this.context.index }) node.`)
+            this.panicBlock(
+                `Unexpected end of the source string while parsing "${this.context.node.name}" (${this.context.index}) node.`,
+            )
         }
 
         return this.root
@@ -137,12 +157,19 @@ export class ProstoParserContext {
             }
         } else {
             this.context.cleanup()
-        }   
+        }
     }
 
-    public pushNewContext(newNode: ProstoParserNode, content: ProstoParserNodeContext['content']) {
+    public pushNewContext(
+        newNode: ProstoParserNode,
+        content: ProstoParserNodeContext['content'],
+    ) {
         this.index++
-        const ctx = newNode.createContext(this.index, this.stack.length + 1, this)
+        const ctx = newNode.createContext(
+            this.index,
+            this.stack.length + 1,
+            this,
+        )
         ctx.content = content
         this.context.fireBeforeChildParse(ctx)
         ctx.level = this.stack.length + 1 // update level in case if pop() was called during onBeforeChild hook
@@ -164,7 +191,9 @@ export class ProstoParserContext {
         return this.pos
     }
 
-    public getCallbackData<T extends TGenericCustomDataType>(matched?: RegExpExecArray): TPorstoParserCallbackData<T> | TPorstoParserCallbackDataMatched<T> {
+    public getCallbackData<T extends TGenericCustomDataType>(
+        matched?: RegExpExecArray,
+    ): TPorstoParserCallbackData<T> | TPorstoParserCallbackDataMatched<T> {
         return {
             parserContext: this,
             context: this.context as ProstoParserNodeContext<T>,
@@ -178,7 +207,9 @@ export class ProstoParserContext {
         const row = past.length
         const col = past.pop()?.length || 0
         return {
-            row, col, pos: this.pos,
+            row,
+            col,
+            pos: this.pos,
         }
     }
 
@@ -186,28 +217,47 @@ export class ProstoParserContext {
         if (this.pos > 0) {
             const { row, col } = this.getPosition(-errorBackOffset)
             console.error(banner + __DYE_RED_BRIGHT__, message, __DYE_RESET__)
-            console.log(this.context.toTree({ childrenLimit: 5, showLast: true, level: 1 }))
-            console.error(renderCodeFragment(this.src.split('\n'), {
-                row: row,
-                error: col,
-            }))
+            console.log(
+                this.context.toTree({
+                    childrenLimit: 5,
+                    showLast: true,
+                    level: 1,
+                }),
+            )
+            console.error(
+                renderCodeFragment(this.src.split('\n'), {
+                    row: row,
+                    error: col,
+                }),
+            )
         }
         throw new Error(message)
     }
 
-    public panicBlock(message: string, topBackOffset = 0, bottomBackOffset = 0) {
+    public panicBlock(
+        message: string,
+        topBackOffset = 0,
+        bottomBackOffset = 0,
+    ) {
         if (this.pos > 0) {
             const { row, col } = this.getPosition(-bottomBackOffset)
             console.error(banner + __DYE_RED_BRIGHT__, message, __DYE_RESET__)
-            console.log(this.context.toTree({ childrenLimit: 13, showLast: true, level: 12 }))
-            console.error(renderCodeFragment(this.src.split('\n'), {
-                row: this.context.startPos.row,
-                error: this.context.startPos.col - topBackOffset,
-                rowEnd: row,
-                errorEnd: col,
-            }))
+            console.log(
+                this.context.toTree({
+                    childrenLimit: 13,
+                    showLast: true,
+                    level: 12,
+                }),
+            )
+            console.error(
+                renderCodeFragment(this.src.split('\n'), {
+                    row: this.context.startPos.row,
+                    error: this.context.startPos.col - topBackOffset,
+                    rowEnd: row,
+                    errorEnd: col,
+                }),
+            )
         }
         throw new Error(message)
     }
 }
-

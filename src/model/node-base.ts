@@ -1,14 +1,24 @@
 import { ProstoParserNodeContext } from '.'
-import { TAbsorbRules, TDefaultCustomDataType, TGenericCustomDataType, TMapContentOptions, TMapContentRule } from '..'
-import { TPorstoParserCallbackData,
-    TProstoParserNodeOptions, TProstoParserHoistOptions, TProstoParserTokenDescripor } from '../p.types'
+import {
+    TAbsorbRules,
+    TDefaultCustomDataType,
+    TGenericCustomDataType,
+    TMapContentOptions,
+    TMapContentRule,
+} from '..'
+import {
+    TPorstoParserCallbackData,
+    TProstoParserNodeOptions,
+    TProstoParserHoistOptions,
+    TProstoParserTokenDescripor,
+} from '../p.types'
 import { escapeRegex } from '../utils'
 import { ProstoParserNode } from './node'
 
 export abstract class ProstoParserNodeBase<
     T extends TGenericCustomDataType = TDefaultCustomDataType,
 > {
-    protected abstract options: TProstoParserNodeOptions<T>;
+    protected abstract options: TProstoParserNodeOptions<T>
 
     //
     // Add Helpers  =======================================================================================
@@ -31,7 +41,7 @@ export abstract class ProstoParserNodeBase<
         this.options.absorbs = this.options.absorbs || {}
         if (Array.isArray(node)) {
             node.forEach((n) => {
-                (
+                ;(
                     this.options.absorbs as Required<
                         TProstoParserNodeOptions<T>
                     >['absorbs']
@@ -324,10 +334,10 @@ export abstract class ProstoParserNodeBase<
         matched: RegExpExecArray,
         cbData: TPorstoParserCallbackData<T>,
     ): {
-        omit?: boolean;
-        eject?: boolean;
-        consume?: boolean;
-        confirmed: boolean;
+        omit?: boolean
+        eject?: boolean
+        consume?: boolean
+        confirmed: boolean
     } {
         return this.options.startsWith
             ? this.fireMatched(this.options.startsWith, matched, cbData)
@@ -338,10 +348,10 @@ export abstract class ProstoParserNodeBase<
         matched: RegExpExecArray,
         cbData: TPorstoParserCallbackData<T>,
     ): {
-        omit?: boolean;
-        eject?: boolean;
-        consume?: boolean;
-        confirmed: boolean;
+        omit?: boolean
+        eject?: boolean
+        consume?: boolean
+        confirmed: boolean
     } {
         return this.options.endsWith
             ? this.fireMatched(this.options.endsWith, matched, cbData)

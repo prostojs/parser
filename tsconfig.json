@@ -1,9 +1,7 @@
 {
     "compilerOptions": {
         "target": "es2019",
-        "lib": [
-            "es2019"
-        ],
+        "lib": ["es2019"],
         "module": "ESNext",
         "declaration": true,
         "sourceMap": true,
@@ -22,7 +20,7 @@
         "noLib": false,
         "removeComments": true,
         "experimentalDecorators": true,
-        "types": ["jest", "node"],
+        "types": ["node"]
     },
     "include": ["src/*", "src/**/*", "**/*.spec.ts"],
     "exclude": ["node_modules", "explorations"]

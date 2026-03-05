@@ -45,11 +45,12 @@ This is not some ready to go solution for parsing specific formats. This is a **
 
 ## Install
 
-npm: 
+npm:
 
 `npm install @prostojs/parser`
 
 Via CDN:
+
 ```
 <script src="https://unpkg.com/@prostojs/tree"></script>
 <script src="https://unpkg.com/@prostojs/parser"></script>
@@ -58,7 +59,7 @@ Via CDN:
 ## Usage
 
 The parser contains of different nodes. There's a node class `ProstoParserNode` which lays underneath of each node.
-It has more simplistic wrapper `BasicNode` which I'll be using in the example below. 
+It has more simplistic wrapper `BasicNode` which I'll be using in the example below.
 
 **Let's solve a task of parsing xml/html format** with some templating baked in it (just like vuejs).
 
@@ -69,13 +70,14 @@ import { BasicNode } from '@prostojs/parser'
 
 const rootNode = new BasicNode({ icon: 'ROOT' })
     // add a hook on when some text content is added to the root node
-    // and trim and remove extra spaces as it shouldn't matter 
+    // and trim and remove extra spaces as it shouldn't matter
     // for html/xml
-    .onAppendContent(s => s.trim().replace(/\n/g, ' ').replace(/\s+/, ' '))
+    .onAppendContent((s) => s.trim().replace(/\n/g, ' ').replace(/\s+/, ' '))
 ```
 
 2. HTML page must start with `<!DOCTYPE ...` thing. Let's just create another
-very basic node for it:
+   very basic node for it:
+
 ```ts
 const docTypeNode = new BasicNode({
     // specifying the label for tree view
@@ -90,7 +92,9 @@ const docTypeNode = new BasicNode({
     tokenOE: 'omit-omit',
 })
 ```
+
 3. Another basic node would be `<![CDATA[...`:
+
 ```ts
 const cDataNode = new BasicNode({
     // specifying icon (just like a label)
@@ -119,13 +123,13 @@ const commentNode = new BasicNode({
 })
 ```
 
-5. Let's get to a little bit more advanced stuff.
-The string node can start with `'`, `"` or \` quote (not really in html, but let's cover this case).
-And we want to ignore the backslashed quote inside the node: `'text \\'escaped\\''`.
+5.  Let's get to a little bit more advanced stuff.
+    The string node can start with `'`, `"` or \` quote (not really in html, but let's cover this case).
+    And we want to ignore the backslashed quote inside the node: `'text \\'escaped\\''`.
 
-    This time we will pass a `customData` type (each node can have a custom data in it) with `{ quote: string }` type. We're doing so to keep the starting quote in order to properly match the ending quote.
+        This time we will pass a `customData` type (each node can have a custom data in it) with `{ quote: string }` type. We're doing so to keep the starting quote in order to properly match the ending quote.
 
-    Why do we need it in HTML? We don't really. But it will be useful for the templating part...
+        Why do we need it in HTML? We don't really. But it will be useful for the templating part...
 
 ```ts
 // Using BasicNode with typed customData:
@@ -139,12 +143,12 @@ const stringNode = new BasicNode<{ quote: string }>({
         // the `customData.quote`
         /(?<quote>["'`])/,
         // For ending token we use a function
-        // that returns the quote that was 
+        // that returns the quote that was
         // saved when the starting token matched.
         // The context object is the runtime artifact
         // of this particular node match
         // instantiated by the `stringNode` itself.
-        context => context.getCustomData().quote || '',
+        (context) => context.getCustomData().quote || '',
     ],
     // saying that we want to ignore backslashed
     // end token
@@ -159,8 +163,11 @@ const stringNode = new BasicNode<{ quote: string }>({
 const valueNode = new BasicNode<{ quote: string }>({
     label: 'value',
     icon: '=',
-    // Almost same as `stringNode` but prefixed with `=` 
-    tokens: [/=(?<quote>["'`])/, context => context.getCustomData().quote || '' ],
+    // Almost same as `stringNode` but prefixed with `=`
+    tokens: [
+        /=(?<quote>["'`])/,
+        (context) => context.getCustomData().quote || '',
+    ],
     // In our version of parser we will ignore backslashed ending quote
     // (in real HTML it is not ignored)
     backSlash: '-ignore',
@@ -178,7 +185,7 @@ const unquotedValueNode = new BasicNode({
     // that pushes the matched result directly
     // to the node content. This is how we match the node
     // and fill up its content at the same step.
-    tokens: [/=(?<content>\w+)/, /[\s\/\>]/ ],
+    tokens: [/=(?<content>\w+)/, /[\s\/\>]/],
     // Omit the start token and eject the end token.
     // Why do we eject this time? Because the end token
     // may be `>` or `/>`. Our parent node might want
@@ -191,7 +198,7 @@ const unquotedValueNode = new BasicNode({
 // Using BasicNode with typed customData for `attrNode`:
 // Our attribute will have `key` and `value` in its
 // custom data
-const attrNode = new BasicNode<{ key: string, value: string }>({
+const attrNode = new BasicNode<{ key: string; value: string }>({
     label: 'attribute',
     icon: '=',
     // The `key` will be pushed right from the
@@ -217,7 +224,7 @@ const attrNode = new BasicNode<{ key: string, value: string }>({
 ```
 
 7. Let's get to the string interpolation templates. Anywhere in html we can type `{{ a + b }}` which
-will be interpreted as an expression node:
+   will be interpreted as an expression node:
 
 ```ts
 // Using BasicNode with typed customData for `expression`:
@@ -225,7 +232,7 @@ const expression = new BasicNode<{ expression: string }>({
     label: 'string',
     icon: '≈',
     // using mustache notation (like in vuejs)
-    tokens: ['{{', '}}' ],
+    tokens: ['{{', '}}'],
     // and we definetelly want to omit those mustaches
     tokenOE: 'omit-omit',
 })
@@ -257,7 +264,7 @@ const innerNode = new BasicNode({
 })
     // On each new string we will trim it and remove extra spaces
     // as we don't really care for them.
-    .onAppendContent(s => s.trim().replace(/\n/g, ' ').replace(/\s+/, ' '))
+    .onAppendContent((s) => s.trim().replace(/\n/g, ' ').replace(/\s+/, ' '))
 ```
 
 9. The most complex node is the `tag` node. There's actually several variations about it. It can be so-called "void" tag which does not have any `inner` and isn't supposed to have closing tag (meta, img, ...).
@@ -270,22 +277,39 @@ const innerNode = new BasicNode({
 
 ```ts
 const htmlVoidTags = [
-    'area','base','br','col',
-    'command','embed','hr','img',
-    'input','keygen','link',
-    'meta','param','source','track','wbr',
+    'area',
+    'base',
+    'br',
+    'col',
+    'command',
+    'embed',
+    'hr',
+    'img',
+    'input',
+    'keygen',
+    'link',
+    'meta',
+    'param',
+    'source',
+    'track',
+    'wbr',
 ]
 const htmlTextTags = ['script', 'style']
 
 // Using BasicNode with typed customData for `tagNode`.
 // We will store flags `isText` and `isVoid`, the opening tag as `tag` and
 // the closing tag as `endTag`.
-// We don't really need the closing tag but we will use it for 
+// We don't really need the closing tag but we will use it for
 // checks that opening tag matches the closing tag.
-const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, endTag?: string }>({
+const tagNode = new BasicNode<{
+    isText: boolean
+    isVoid: boolean
+    tag: string
+    endTag?: string
+}>({
     tokens: [
         // The starting token is simple.
-        // It's just a named capturing group with 
+        // It's just a named capturing group with
         // proper caharcters after `<`
         /<(?<tag>[\w:\-\.]+)/,
         // The ending token is more complex
@@ -294,7 +318,10 @@ const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, e
             // The Void tag ends with just `>` or `/>`
             if (customData.isVoid) return /\/?>/
             // The text tag ends with exact match to the opening tag
-            if (customData.isText) return new RegExp(`<\\/(?<endTag>${ escapeRegex(customData.tag) })\\s*>`)
+            if (customData.isText)
+                return new RegExp(
+                    `<\\/(?<endTag>${escapeRegex(customData.tag)})\\s*>`,
+                )
             // And the regular tag ends with `/>` or `</...>`
             // We use named capturing group here to store the
             // closing tag in customData.endTag.
@@ -321,9 +348,9 @@ const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, e
         // only for tree view we store the tag
         // as the icon which is very easy to see
         // when printing a tree
-        context.icon = customData.tag,
-        // checking if the tag is a void or a text one
-        customData.isVoid = htmlVoidTags.includes(customData.tag)
+        ;((context.icon = customData.tag),
+            // checking if the tag is a void or a text one
+            (customData.isVoid = htmlVoidTags.includes(customData.tag)))
         customData.isText = htmlTextTags.includes(customData.tag)
         if (customData.isVoid) {
             // in case of void tag we get rid
@@ -332,7 +359,7 @@ const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, e
             context.clearRecognizes(innerNode)
         }
         if (customData.isText) {
-            // in case of text tag we want to 
+            // in case of text tag we want to
             // absorb the `innerNode` content
             // to this node content (just to avoid
             // extra node that will carry only text data)
@@ -346,7 +373,7 @@ const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, e
         if (customData.isText && childContext.node === innerNode) {
             // in case of text node we want the `innerNode`
             // to store only text data so we
-            // remove all the nodes from its 
+            // remove all the nodes from its
             // `recognizes` option
             childContext.clearRecognizes()
             // we also don't want the `innerNode` to trim
@@ -359,7 +386,9 @@ const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, e
             // to end only when full match for opening tag
             // is met
             childContext.endsWith = {
-                token: new RegExp(`<\\/(?<endTag>${ escapeRegex(customData.tag) })\\s*>`),
+                token: new RegExp(
+                    `<\\/(?<endTag>${escapeRegex(customData.tag)})\\s*>`,
+                ),
                 eject: true,
             }
         }
@@ -384,19 +413,19 @@ const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, e
     .onPop(({ customData: { isVoid, tag, endTag }, parserContext }) => {
         if (!isVoid && typeof endTag === 'string' && tag !== endTag) {
             // Here we check that the closing tag matches the opening tag
-            // (only for non-void tags and only if it is not a innerless 
+            // (only for non-void tags and only if it is not a innerless
             // version like <div />)
             // `panicBlock` method of the `parserContext`
-            // throws an error with printing the corresponding 
+            // throws an error with printing the corresponding
             // source lines
             parserContext.panicBlock(
-                `Open tag <${ tag }> and closing tag </${ endTag }> must be equal.`,
+                `Open tag <${tag}> and closing tag </${endTag}> must be equal.`,
                 // we must point the parser
                 // on where is the start of problem
                 // (tag.length - is the length of opening tag
                 // so we step back to it's length)
                 tag.length || 0,
-                // same for closing block 
+                // same for closing block
                 // we step back to point to the
                 // beginning of the closing tag
                 endTag.length + 1,
@@ -404,7 +433,7 @@ const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, e
         }
     })
     // Finally add nodes that should be recognized by this node
-    // Sometimes we skip this step if we already used 
+    // Sometimes we skip this step if we already used
     // `addPopsAfterNode` or `addAbsorbs` methods, they trigger
     // `addRecognizes` automatically as they do not make sense
     // if they do not recognize the nodes mentioned there
@@ -434,35 +463,37 @@ console.log(result.toTree())
 ```
 
 If we try to parse this one
+
 ```html
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="utf-8">
+        <meta charset="utf-8" />
         <title>My test page</title>
         <!-- First Comment -->
         <style>
             .bg-red {
                 background-color: red;
             }
-        </style>        
+        </style>
     </head>
-<body>
-
-<h1>My First Heading</h1>
-<p>My first paragraph.</p>
-<div class="big small text" title="div title 123">
-    <div class="nested" v-for="item of items" p:prefixed="value1">
-        <img src="picture.png" class="void-tag" >
-        <span style="display: block"> this is my {{ item.index }} line </span>
-    </div>
-</div>
-
-</body>
+    <body>
+        <h1>My First Heading</h1>
+        <p>My first paragraph.</p>
+        <div class="big small text" title="div title 123">
+            <div class="nested" v-for="item of items" p:prefixed="value1">
+                <img src="picture.png" class="void-tag" />
+                <span style="display: block">
+                    this is my {{ item.index }} line
+                </span>
+            </div>
+        </div>
+    </body>
 </html>
 ```
 
 We'll end up with this result
+
 ```
 ROOT
 ├─ ◦ Document Type

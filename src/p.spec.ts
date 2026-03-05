@@ -27,10 +27,11 @@ describe('ProstoParser', () => {
 
     const paramNode = new BasicNode<TCustomContext>({
         label: 'Parameter',
-        tokens: [':', /[\/\-]/],
+        tokens: [':', /[/-]/],
         tokenOE: 'omit-eject',
         backSlash: 'ignore-',
-    }).mapContent('key', content => content.shift())
+    })
+        .mapContent('key', (content) => content.shift())
         .popsAtEOFSource(true)
         .addPopsAfterNode(regexNode)
         .addAbsorbs(regexNode, 'join->regex')
@@ -38,7 +39,7 @@ describe('ProstoParser', () => {
 
     const wildcardNode = new BasicNode<TCustomContext>({
         label: 'Wildcard',
-        tokens: ['*', /[^*\()]/],
+        tokens: ['*', /[^*()]/],
         tokenOE: '-eject',
     })
         .mapContent('key', 'join-clear')
@@ -46,13 +47,13 @@ describe('ProstoParser', () => {
         .addPopsAfterNode(regexNode)
         .addAbsorbs(regexNode, 'join->regex')
 
-    const pathParser = new BasicNode({ label: 'Static', icon: 'ROOT' })
-        .addRecognizes(paramNode, wildcardNode)
+    const pathParser = new BasicNode({
+        label: 'Static',
+        icon: 'ROOT',
+    }).addRecognizes(paramNode, wildcardNode)
 
     it('must parse URI pattern with first variable', () => {
-        const tree = pathParser
-            .parse(':variable')
-            .toTree()
+        const tree = pathParser.parse(':variable').toTree()
         console.log(tree)
         expect(dye.strip(tree)).toMatchInlineSnapshot(`
 "• ROOT Static
@@ -63,7 +64,9 @@ describe('ProstoParser', () => {
 
     it('must parse URI pattern expression', () => {
         const tree = pathParser
-            .parse('/test/:name1-:name2(a(?:test(inside))b)/*(d)/test/*/:ending')
+            .parse(
+                '/test/:name1-:name2(a(?:test(inside))b)/*(d)/test/*/:ending',
+            )
             .toTree()
         console.log(tree)
         expect(dye.strip(tree)).toMatchInlineSnapshot(`
@@ -100,16 +103,14 @@ describe('ProstoParser', () => {
         'track',
         'wbr',
     ]
-    
-    const htmlTextTags = [
-        'script',
-        'style',
-    ]
+
+    const htmlTextTags = ['script', 'style']
 
     it('must parse html', () => {
-        const rootNode = new BasicNode({ icon: 'ROOT' })
-            .onAppendContent(s => s.trim().replace(/\n/g, ' ').replace(/\s+/, ' '))
-        
+        const rootNode = new BasicNode({ icon: 'ROOT' }).onAppendContent((s) =>
+            s.trim().replace(/\n/g, ' ').replace(/\s+/, ' '),
+        )
+
         const docTypeNode = new BasicNode({
             label: 'Document Type',
             tokens: ['<!DOCTYPE ', '>'],
@@ -132,14 +133,20 @@ describe('ProstoParser', () => {
         const stringNode = new BasicNode<{ quote: string }>({
             label: '',
             icon: '"',
-            tokens: [/(?<quote>["'`])/, context => context.getCustomData().quote || '' ],
+            tokens: [
+                /(?<quote>["'`])/,
+                (context) => context.getCustomData().quote || '',
+            ],
             backSlash: '-ignore',
         })
 
         const valueNode = new BasicNode<{ quote: string }>({
             label: 'value',
             icon: '=',
-            tokens: [/=(?<quote>["'`])/, context => context.getCustomData().quote || '' ],
+            tokens: [
+                /=(?<quote>["'`])/,
+                (context) => context.getCustomData().quote || '',
+            ],
             backSlash: '-ignore',
             tokenOE: 'omit-omit',
         })
@@ -147,14 +154,14 @@ describe('ProstoParser', () => {
         const unquotedValueNode = new BasicNode<{ quote: string }>({
             label: 'value',
             icon: '=',
-            tokens: [/=(?<content>\w+)/, /[\s\/\>]/ ],
+            tokens: [/=(?<content>\w+)/, /[\s/>]/],
             tokenOE: 'omit-eject',
         })
 
-        const attrNode = new BasicNode<{ key: string, value: string }>({
+        const attrNode = new BasicNode<{ key: string; value: string }>({
             label: 'attribute',
             icon: '=',
-            tokens: [/(?<key>[\w:\-\.]+)/, /[\s\n\/>]/],
+            tokens: [/(?<key>[\w:\-.]+)/, /[\s\n/>]/],
             tokenOE: 'omit-eject',
         })
             .addPopsAfterNode(unquotedValueNode, valueNode)
@@ -163,7 +170,7 @@ describe('ProstoParser', () => {
         const expression = new BasicNode<{ expression: string }>({
             label: 'string',
             icon: '≈',
-            tokens: ['{{', '}}' ],
+            tokens: ['{{', '}}'],
             tokenOE: 'omit-omit',
         })
             .addAbsorbs(stringNode, 'join')
@@ -173,22 +180,32 @@ describe('ProstoParser', () => {
             label: 'inner',
             tokens: ['>', '</'],
             tokenOE: 'omit-eject',
-        }).onAppendContent(s => s.trim().replace(/\n/g, ' ').replace(/\s+/, ' '))
+        }).onAppendContent((s) =>
+            s.trim().replace(/\n/g, ' ').replace(/\s+/, ' '),
+        )
 
-        const tagNode = new BasicNode<{ isText: boolean, isVoid: boolean, tag: string, endTag?: string }>({
+        const tagNode = new BasicNode<{
+            isText: boolean
+            isVoid: boolean
+            tag: string
+            endTag?: string
+        }>({
             tokens: [
-                /<(?<tag>[\w:\-\.]+)/,
+                /<(?<tag>[\w:\-.]+)/,
                 ({ customData }) => {
                     if (customData.isVoid) return /\/?>/
-                    if (customData.isText) return new RegExp(`<\\/(?<endTag>${ escapeRegex(customData.tag) })\\s*>`)
-                    return /(?:\/\>|\<\/(?<endTag>[\w:\-\.]+)\s*\>)/
+                    if (customData.isText)
+                        return new RegExp(
+                            `<\\/(?<endTag>${escapeRegex(customData.tag)})\\s*>`,
+                        )
+                    return /(?:\/>|<\/(?<endTag>[\w:\-.]+)\s*>)/
                 },
             ],
             tokenOE: 'omit-omit',
             skipToken: /\s/,
         })
             .onMatch(({ context, customData }) => {
-                context.icon = customData.tag,
+                context.icon = customData.tag
                 customData.isVoid = htmlVoidTags.includes(customData.tag)
                 customData.isText = htmlTextTags.includes(customData.tag)
                 if (customData.isVoid) {
@@ -204,7 +221,9 @@ describe('ProstoParser', () => {
                     child.removeOnAppendContent()
                     context.clearSkipToken()
                     child.endsWith = {
-                        token: new RegExp(`<\\/(?<endTag>${ escapeRegex(customData.tag) })\\s*>`),
+                        token: new RegExp(
+                            `<\\/(?<endTag>${escapeRegex(customData.tag)})\\s*>`,
+                        ),
                         eject: true,
                     }
                 }
@@ -218,20 +237,21 @@ describe('ProstoParser', () => {
             .onPop(({ customData: { isVoid, tag, endTag }, parserContext }) => {
                 if (!isVoid && typeof endTag === 'string' && tag !== endTag) {
                     parserContext.panicBlock(
-                        `Open tag <${ tag }> and closing tag </${ endTag }> must be equal.`,
+                        `Open tag <${tag}> and closing tag </${endTag}> must be equal.`,
                         tag.length || 0,
                         endTag.length + 1,
                     )
                 }
             })
             .addRecognizes(innerNode, attrNode)
-        
+
         rootNode.addRecognizes(docTypeNode, commentNode, tagNode, expression)
         innerNode.addRecognizes(commentNode, cDataNode, tagNode, expression)
         commentNode.addRecognizes(expression)
         cDataNode.addRecognizes(expression)
 
-        const result = rootNode.parse(`<!DOCTYPE html>
+        const result = rootNode.parse(
+            `<!DOCTYPE html>
         <html>
         <head>
             <meta charset="utf-8">

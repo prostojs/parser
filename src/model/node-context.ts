@@ -3,11 +3,20 @@ import { ProstoParserNode } from './node'
 import { ProstoParserNodeBase } from './node-base'
 import { ProstoParserContext } from './parser-context'
 import { parserTree } from '../tree'
-import { TDefaultCustomDataType, TGenericCustomDataType, TMapContentRules, TPorstoParserCallbackData, TPorstoParserCallbackDataMatched, TSearchToken } from '..'
+import {
+    TDefaultCustomDataType,
+    TGenericCustomDataType,
+    TMapContentRules,
+    TPorstoParserCallbackData,
+    TPorstoParserCallbackDataMatched,
+    TSearchToken,
+} from '..'
 import { TProstoTreeRenderOptions } from '@prostojs/tree'
 
 /** @public */
-export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefaultCustomDataType> extends ProstoParserNodeBase<T> {
+export class ProstoParserNodeContext<
+    T extends TGenericCustomDataType = TDefaultCustomDataType,
+> extends ProstoParserNodeBase<T> {
     public content: (string | ProstoParserNodeContext)[] = []
 
     protected readonly _customData: T = {} as T
@@ -18,9 +27,9 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
 
     public readonly parserContext: ProstoParserContext
 
-    public readonly startPos: { row: number, col: number, pos: number }
+    public readonly startPos: { row: number; col: number; pos: number }
 
-    public endPos: { row: number, col: number, pos: number }
+    public endPos: { row: number; col: number; pos: number }
 
     protected hasNodes: ProstoParserNode[] = []
 
@@ -34,7 +43,12 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         return this.options as Required<TProstoParserNodeOptions<T>>
     }
 
-    constructor(protected readonly _node: ProstoParserNode<T>, public readonly index: number, public level: number, parserContext?: ProstoParserContext) {
+    constructor(
+        protected readonly _node: ProstoParserNode<T>,
+        public readonly index: number,
+        public level: number,
+        parserContext?: ProstoParserContext,
+    ) {
         super()
         this.options = _node.getOptions()
         if (this.options.initCustomData) {
@@ -53,18 +67,20 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
     public contentCopiedTo?: keyof T
 
     /**
-     * Extracts the tree of Custom Data type with no 
+     * Extracts the tree of Custom Data type with no
      * ProstoParserNodeContext.
-     * 
+     *
      * @returns {Array} Array of (T | string)
      */
     public extractCustomDataTree<TreeType = (T | string)[]>(): TreeType {
         let content = this.content
         if (this.contentCopiedTo) {
-            content = this.customData[this.contentCopiedTo] as unknown as typeof this.content
+            content = this.customData[
+                this.contentCopiedTo
+            ] as unknown as typeof this.content
         }
         if (Array.isArray(content)) {
-            return content.map(c => {
+            return content.map((c) => {
                 if (typeof c === 'string') {
                     return c
                 } else {
@@ -82,7 +98,8 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         function extract(c: ProstoParserNodeContext) {
             const cd = { ...c.getCustomData<Record<string, unknown>>() }
             if (c.contentCopiedTo) {
-                cd[c.contentCopiedTo as keyof typeof cd] = c.extractCustomDataTree()
+                cd[c.contentCopiedTo as keyof typeof cd] =
+                    c.extractCustomDataTree()
             }
             return cd as unknown as TreeType
         }
@@ -90,16 +107,18 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
 
     public getPrevNode(n = 1): string | ProstoParserNodeContext | void {
         if (this.parent) {
-            const index = this.parent.content.findIndex(n => n === this) - n
-            if (index >=0) return this.parent.content[index]
+            const index = this.parent.content.findIndex((n) => n === this) - n
+            if (index >= 0) return this.parent.content[index]
         }
     }
 
     public getPrevContext(n = 1): ProstoParserNodeContext | void {
         if (this.parent) {
-            const contexts = this.parent.content.filter(n => n instanceof ProstoParserNodeContext)
-            const index = contexts.findIndex(n => n === this) - n
-            if (index >=0) return contexts[index] as ProstoParserNodeContext
+            const contexts = this.parent.content.filter(
+                (n) => n instanceof ProstoParserNodeContext,
+            )
+            const index = contexts.findIndex((n) => n === this) - n
+            if (index >= 0) return contexts[index] as ProstoParserNodeContext
         }
     }
 
@@ -135,18 +154,22 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         return this._node
     }
 
-    public toTree(options?: TProstoTreeRenderOptions): string { 
+    public toTree(options?: TProstoTreeRenderOptions): string {
         return parserTree.render(this, options)
     }
 
     public getSearchTokens(): TSearchToken[] {
         const rg = this.getEndTokenRg()
-        const tokens: TSearchToken[] = rg ? [{
-            rg,
-            y: addFlag(rg, 'y'),
-            g: addFlag(rg, 'g'),
-        }] : []
-        this.options.recognizes?.forEach(node => {
+        const tokens: TSearchToken[] = rg
+            ? [
+                  {
+                      rg,
+                      y: addFlag(rg, 'y'),
+                      g: addFlag(rg, 'g'),
+                  },
+              ]
+            : []
+        this.options.recognizes?.forEach((node) => {
             const rg = node.getStartTokenRg()
             if (rg) {
                 tokens.push({
@@ -176,7 +199,9 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
             const m = bad.exec(s)
             if (m) {
                 this.parserContext.jump(m.index)
-                this.parserContext.panic(`The token "${ m[0].replace(/"/g, '\\"') }" is not allowed in "${ this.node.name }".`)
+                this.parserContext.panic(
+                    `The token "${m[0].replace(/"/g, '\\"')}" is not allowed in "${this.node.name}".`,
+                )
             }
         }
         s = this.fireOnAppendContent(s)
@@ -190,16 +215,18 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         // when we don't need it any longer
         this.options = null as unknown as TProstoParserNodeOptions<T>
     }
-    
+
     public pushChild(child: ProstoParserNodeContext) {
-        const absorbRule = this.options.absorbs && this.options.absorbs[child.node.id]
+        const absorbRule =
+            this.options.absorbs && this.options.absorbs[child.node.id]
         if (!absorbRule) {
             this.content.push(child)
         }
     }
 
     public fireAbsorb(child: ProstoParserNodeContext) {
-        const absorbRule = this.options.absorbs && this.options.absorbs[child.node.id]
+        const absorbRule =
+            this.options.absorbs && this.options.absorbs[child.node.id]
         if (absorbRule) {
             // remove this child from content
             // this.content.pop()
@@ -214,11 +241,16 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
                     const [action, target] = absorbRule.split('->')
                     const cd = this.getCustomData<T>()
                     if (action === 'copy') {
-                        cd[target as keyof T] = child.content as unknown as T[keyof T]
+                        cd[target as keyof T] =
+                            child.content as unknown as T[keyof T]
                     } else if (action === 'join') {
-                        cd[target as keyof T] = child.content.join('') as unknown as T[keyof T]
+                        cd[target as keyof T] = child.content.join(
+                            '',
+                        ) as unknown as T[keyof T]
                     } else {
-                        this.parserContext.panic(`Absorb action "${ action }" is not supported.`)
+                        this.parserContext.panic(
+                            `Absorb action "${action}" is not supported.`,
+                        )
                     }
             }
         }
@@ -253,7 +285,8 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
     public fireOnPop() {
         this.endPos = this.parserContext.getPosition()
         this.processMappings()
-        const data: TPorstoParserCallbackData<T> = this.parserContext.getCallbackData()
+        const data: TPorstoParserCallbackData<T> =
+            this.parserContext.getCallbackData()
         this.node.beforeOnPop(data)
         if (this.options.onPop) {
             this.options.onPop(data)
@@ -262,7 +295,10 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
 
     public fireOnMatch(matched: RegExpExecArray): void {
         this.mapNamedGroups(matched)
-        const data: TPorstoParserCallbackDataMatched<T> = this.parserContext.getCallbackData(matched) as TPorstoParserCallbackDataMatched<T>
+        const data: TPorstoParserCallbackDataMatched<T> =
+            this.parserContext.getCallbackData(
+                matched,
+            ) as TPorstoParserCallbackDataMatched<T>
         if (!this.options.startsWith?.eject) {
             // fix start position
             const newPos = this.parserContext.getPosition(
@@ -272,14 +308,15 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
             this.startPos.row = newPos.row
             this.startPos.pos = newPos.pos
         }
-        this.node.beforeOnMatch(data) 
+        this.node.beforeOnMatch(data)
         if (this.options.onMatch) {
             return this.options.onMatch(data)
         }
     }
 
     public fireBeforeChildParse(child: ProstoParserNodeContext): void {
-        const data: TPorstoParserCallbackData<T> = this.parserContext.getCallbackData()
+        const data: TPorstoParserCallbackData<T> =
+            this.parserContext.getCallbackData()
         this.node.beforeOnBeforeChildParse(child, data)
         if (this.options.onBeforeChildParse) {
             return this.options.onBeforeChildParse(child, data)
@@ -292,7 +329,8 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         }
         this.count[child.node.id] = this.count[child.node.id] || 0
         this.count[child.node.id]++
-        const data: TPorstoParserCallbackData<T> = this.parserContext.getCallbackData()
+        const data: TPorstoParserCallbackData<T> =
+            this.parserContext.getCallbackData()
         this.node.beforeOnAfterChildParse(child, data)
         if (this.options.onAfterChildParse) {
             return this.options.onAfterChildParse(child, data)
@@ -301,7 +339,8 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
 
     public fireOnAppendContent(s: string): string {
         let _s = s
-        const data: TPorstoParserCallbackData<T> = this.parserContext.getCallbackData()
+        const data: TPorstoParserCallbackData<T> =
+            this.parserContext.getCallbackData()
         _s = this.node.beforeOnAppendContent(_s, data)
         if (this.options.onAppendContent) {
             _s = this.options.onAppendContent(_s, data)
@@ -324,16 +363,29 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         if (targetNodeOptions.mapContent) {
             Object.keys(targetNodeOptions.mapContent).forEach((key) => {
                 const keyOfT: keyof T = key as keyof T
-                if (targetNodeOptions.mapContent && targetNodeOptions.mapContent[keyOfT]) {
+                if (
+                    targetNodeOptions.mapContent &&
+                    targetNodeOptions.mapContent[keyOfT]
+                ) {
                     const mapRule = targetNodeOptions.mapContent[keyOfT]
                     if (typeof mapRule === 'function') {
-                        this._customData[keyOfT] = mapRule(this.content) as T[keyof T]
+                        this._customData[keyOfT] = mapRule(
+                            this.content,
+                        ) as T[keyof T]
                     } else {
                         const ruleKey: TMapContentRules = mapRule
                         if (ruleKey === 'copy') this.contentCopiedTo = keyOfT
-                        this._customData[keyOfT] = this.mapContentRules[ruleKey](this.content) as T[keyof T]
+                        this._customData[keyOfT] = this.mapContentRules[
+                            ruleKey
+                        ](this.content) as T[keyof T]
                     }
-                    if (!this.contentCopiedTo && (typeof mapRule === 'function' || ['first', 'shift', 'pop', 'last'].includes(mapRule as string))) {
+                    if (
+                        !this.contentCopiedTo &&
+                        (typeof mapRule === 'function' ||
+                            ['first', 'shift', 'pop', 'last'].includes(
+                                mapRule as string,
+                            ))
+                    ) {
                         this.contentCopiedTo = keyOfT
                     }
                 }
@@ -341,13 +393,17 @@ export class ProstoParserNodeContext<T extends TGenericCustomDataType = TDefault
         }
     }
 
-    protected mapContentRules: { [key in TMapContentRules]: ((content: ProstoParserNodeContext<T>['content']) => unknown)} = {
-        'first': (content) => content[0],
-        'shift': (content) => content.shift(),
-        'pop': (content) => content.pop(),
-        'last': (content) => content[content.length - 1],
-        'join': (content) => content.join(''),
+    protected mapContentRules: {
+        [key in TMapContentRules]: (
+            content: ProstoParserNodeContext<T>['content'],
+        ) => unknown
+    } = {
+        first: (content) => content[0],
+        shift: (content) => content.shift(),
+        pop: (content) => content.pop(),
+        last: (content) => content[content.length - 1],
+        join: (content) => content.join(''),
         'join-clear': (content) => content.splice(0).join(''),
-        'copy': (content) => content,
-    }   
+        copy: (content) => content,
+    }
 }

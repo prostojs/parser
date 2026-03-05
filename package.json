@@ -1,88 +1,86 @@
 {
-  "name": "@prostojs/parser",
-  "version": "0.5.11",
-  "description": "Parse anything",
-  "main": "dist/index.cjs",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
-  "files": [
-    "index.js",
-    "dist"
-  ],
-  "sideEffects": false,
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+    "name": "@prostojs/parser",
+    "version": "0.5.11",
+    "description": "Parse anything",
+    "keywords": [
+        "parser",
+        "prostojs"
+    ],
+    "homepage": "https://github.com/prostojs/parser#readme",
+    "bugs": {
+        "url": "https://github.com/prostojs/parser/issues"
     },
-    "./package.json": "./package.json"
-  },
-  "scripts": {
-    "build": "rollup -c rollup.config.js",
-    "release": "node ./scripts/release.js",
-    "test": "jest --runInBand",
-    "test:cov": "jest --runInBand --coverage",
-    "lint": "eslint --ext .ts src/**.ts --fix",
-    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "version": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/prostojs/parser.git"
-  },
-  "keywords": [
-    "parser",
-    "prostojs"
-  ],
-  "buildOptions": {
-    "name": "ProstoParser",
-    "formats": [
-      "esm-bundler",
-      "esm-browser",
-      "cjs",
-      "global"
-    ]
-  },
-  "dependencies": {
-    "@prostojs/tree": "^0.3.0"
-  },
-  "gitHooks": {
-    "commit-msg": "node scripts/verifyCommit.js"
-  },
-  "author": "Artem Maltsev",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/prostojs/parser/issues"
-  },
-  "homepage": "https://github.com/prostojs/parser#readme",
-  "devDependencies": {
-    "@prostojs/dye": "^0.3.0",
-    "@rollup/plugin-commonjs": "^28.0.2",
-    "@rollup/plugin-node-resolve": "^16.0.0",
-    "@rollup/plugin-replace": "^6.0.2",
-    "@types/jest": "^29.5.14",
-    "@types/node": "^22.10.2",
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
-    "@typescript-eslint/parser": "^4.33.0",
-    "conventional-changelog": "^3.1.24",
-    "conventional-changelog-cli": "^2.1.1",
-    "enquirer": "^2.3.6",
-    "eslint": "^7.32.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-import": "^2.24.2",
-    "execa": "^5.1.1",
-    "fs-extra": "^10.0.0",
-    "jest": "^29.7.0",
-    "minimist": "^1.2.6",
-    "rollup": "^4.29.1",
-    "rollup-plugin-dts": "^6.1.1",
-    "rollup-plugin-typescript2": "^0.36.0",
-    "semver": "^7.3.5",
-    "ts-jest": "^29.2.5",
-    "ts-node": "^10.9.1",
-    "tslib": "^2.8.1",
-    "typescript": "^5.7.2",
-    "yorkie": "^2.0.0"
-  }
+    "license": "MIT",
+    "author": "Artem Maltsev",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/prostojs/parser.git"
+    },
+    "files": [
+        "index.js",
+        "dist"
+    ],
+    "sideEffects": false,
+    "main": "dist/index.cjs",
+    "module": "dist/index.mjs",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.cjs"
+        },
+        "./package.json": "./package.json"
+    },
+    "scripts": {
+        "build": "rollup -c rollup.config.js",
+        "release": "node ./scripts/release.js",
+        "test": "vitest run",
+        "test:cov": "vitest run --coverage",
+        "lint": "oxlint",
+        "lint:fix": "oxlint --fix",
+        "format": "oxfmt",
+        "format:check": "oxfmt --check",
+        "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
+        "version": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md"
+    },
+    "dependencies": {
+        "@prostojs/tree": "^0.3.0"
+    },
+    "devDependencies": {
+        "@prostojs/dye": "^0.3.0",
+        "@rollup/plugin-commonjs": "^28.0.9",
+        "@rollup/plugin-node-resolve": "^16.0.3",
+        "@rollup/plugin-replace": "^6.0.3",
+        "@types/node": "^22.19.13",
+        "conventional-changelog": "^3.1.25",
+        "conventional-changelog-cli": "^2.2.2",
+        "enquirer": "^2.4.1",
+        "execa": "^5.1.1",
+        "fs-extra": "^10.1.0",
+        "minimist": "^1.2.8",
+        "oxfmt": "^0.36.0",
+        "oxlint": "^1.51.0",
+        "rollup": "^4.59.0",
+        "rollup-plugin-dts": "^6.3.0",
+        "rollup-plugin-typescript2": "^0.36.0",
+        "semver": "^7.7.4",
+        "ts-node": "^10.9.2",
+        "tslib": "^2.8.1",
+        "typescript": "^5.9.3",
+        "vitest": "^4.0.18",
+        "yorkie": "^2.0.0"
+    },
+    "buildOptions": {
+        "name": "ProstoParser",
+        "formats": [
+            "esm-bundler",
+            "esm-browser",
+            "cjs",
+            "global"
+        ]
+    },
+    "gitHooks": {
+        "commit-msg": "node scripts/verifyCommit.js"
+    }
 }
