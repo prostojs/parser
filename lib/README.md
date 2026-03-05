@@ -1,5 +1,5 @@
 <p align="center">
-<img src="./docs/logo.png" width="100%" style="max-width: 900px" />
+<img src="https://raw.githubusercontent.com/prostojs/parser/main/docs/logo.png" width="100%" style="max-width: 900px" />
 <a  href="https://github.com/prostojs/parser/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-cyan?style=for-the-badge" />
 </a>
@@ -15,9 +15,9 @@ Stop writing ad-hoc regex spaghetti or reaching for heavyweight parser generator
 
 **Output is built *during* parsing.** Hooks fire as tokens are matched — `onOpen`, `onClose`, `onContent`, `onChild`. Your data is in its final shape the moment parsing ends. No AST-to-output conversion step. No tree walking.
 
-**Near-zero boilerplate.** Write `data: { tag: '', attrs: {} }` and it just works — auto-cloned per match, regex named groups auto-mapped to fields. A full XML-to-JSON parser is [~400 lines](./examples/xml-json/).
+**Near-zero boilerplate.** Write `data: { tag: '', attrs: {} }` and it just works — auto-cloned per match, regex named groups auto-mapped to fields. A full XML-to-JSON parser is [~400 lines](https://github.com/prostojs/parser/tree/main/examples/xml-json).
 
-**Competitive performance.** A general-purpose toolkit parsing XML is [within 4-36%](./examples/xml-json/#benchmark-results) of `fast-xml-parser`, a dedicated XML-only library. For most formats you'll parse, there *is* no dedicated alternative — and this is fast enough.
+**Competitive performance.** A general-purpose toolkit parsing XML is [within 4-36%](https://github.com/prostojs/parser/tree/main/examples/xml-json#benchmark-results) of `fast-xml-parser`, a dedicated XML-only library. For most formats you'll parse, there *is* no dedicated alternative — and this is fast enough.
 
 ## Install
 
@@ -223,21 +223,21 @@ Throws on unclosed nodes and bad tokens with precise source positions.
 
 ## Examples
 
-Each example is a standalone parser showcasing different aspects of the API. All source is in [`examples/`](./examples/).
+Each example is a standalone parser showcasing different aspects of the API. All source is in the [examples/](https://github.com/prostojs/parser/tree/main/examples) directory on GitHub.
 
 | Example | What it parses | Highlights |
 |---------|---------------|------------|
-| [**XML-to-JSON**](./examples/xml-json/) | Full XML → JSON (fast-xml-parser compatible) | Dynamic end tokens, hooks-based output, entity decoding, ~400 lines |
-| [**JSON**](./examples/json/) | JSON strings → JS values | `onContent` for bare primitives, state tracking for key/value disambiguation |
-| [**Math Evaluator**](./examples/math-eval/) | `2 + 3 * (4 - 1)` → `11` | Recursive `group` nodes, result computed during parsing — no AST |
-| [**Template String**](./examples/template-string/) | `Hello, {{name}}!` → parts array | Minimal 2-node parser, `mapContent` for zero-hook data capture |
-| [**CSS Selector**](./examples/css-selector/) | `div.cls > span:hover` → structured parts | Dynamic quote matching, regex tokenization in `onContent` |
-| [**URL Parser**](./examples/url-parser/) | URLs → protocol/host/path/query/hash | Named group auto-mapping, `eject` for boundary detection |
-| [**ESM Analyzer**](./examples/esm-analyzer/) | JS/TS source → imports, exports, unused | String/comment nodes as "shields" against false positives |
+| [**XML-to-JSON**](https://github.com/prostojs/parser/tree/main/examples/xml-json) | Full XML → JSON (fast-xml-parser compatible) | Dynamic end tokens, hooks-based output, entity decoding, ~400 lines |
+| [**JSON**](https://github.com/prostojs/parser/tree/main/examples/json) | JSON strings → JS values | `onContent` for bare primitives, state tracking for key/value disambiguation |
+| [**Math Evaluator**](https://github.com/prostojs/parser/tree/main/examples/math-eval) | `2 + 3 * (4 - 1)` → `11` | Recursive `group` nodes, result computed during parsing — no AST |
+| [**Template String**](https://github.com/prostojs/parser/tree/main/examples/template-string) | `Hello, {{name}}!` → parts array | Minimal 2-node parser, `mapContent` for zero-hook data capture |
+| [**CSS Selector**](https://github.com/prostojs/parser/tree/main/examples/css-selector) | `div.cls > span:hover` → structured parts | Dynamic quote matching, regex tokenization in `onContent` |
+| [**URL Parser**](https://github.com/prostojs/parser/tree/main/examples/url-parser) | URLs → protocol/host/path/query/hash | Named group auto-mapping, `eject` for boundary detection |
+| [**ESM Analyzer**](https://github.com/prostojs/parser/tree/main/examples/esm-analyzer) | JS/TS source → imports, exports, unused | String/comment nodes as "shields" against false positives |
 
 ## Migration from v0.5
 
-See [MIGRATION.md](./MIGRATION.md) for a comprehensive guide.
+See [MIGRATION.md](https://github.com/prostojs/parser/blob/main/MIGRATION.md) for a comprehensive guide.
 
 ## License
 

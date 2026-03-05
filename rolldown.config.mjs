@@ -1,21 +1,13 @@
 import dyePlugin from '@prostojs/dye/rolldown'
 
-const external = [
-    'url',
-    'crypto',
-    'stream',
-    'packages/*/src',
-    'http',
-    'path',
-    '@prostojs/tree',
-]
+const external = []
 
 export default [
     {
         external,
-        input: './src/index.ts',
+        input: './lib/src/index.ts',
         output: {
-            file: './dist/index.mjs',
+            file: './lib/dist/index.mjs',
             format: 'esm',
             sourcemap: false,
         },
@@ -26,9 +18,9 @@ export default [
     },
     {
         external,
-        input: './src/index.ts',
+        input: './lib/src/index.ts',
         output: {
-            file: './dist/index.cjs',
+            file: './lib/dist/index.cjs',
             format: 'cjs',
             sourcemap: false,
         },

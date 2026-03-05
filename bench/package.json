@@ -1,0 +1,14 @@
+{
+    "name": "parser-bench",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "bench": "tsx bench.ts"
+    },
+    "dependencies": {
+        "@prostojs/parser": "workspace:*",
+        "fast-xml-parser": "^5.2.3",
+        "tsx": "^4.19.0",
+        "mitata": "^1.0.34"
+    }
+}

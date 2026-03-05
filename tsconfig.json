@@ -1,27 +1,31 @@
 {
     "compilerOptions": {
-        "target": "es2019",
-        "lib": ["es2019"],
+        "target": "es2022",
+        "lib": ["es2022"],
         "module": "ESNext",
+        "moduleResolution": "bundler",
         "declaration": true,
         "sourceMap": true,
-        "moduleResolution": "node",
         "resolveJsonModule": true,
-        "rootDir": ".",
         "allowJs": false,
-        "outDir": "build",
-        "downlevelIteration": true,
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,
         "noImplicitAny": true,
         "skipLibCheck": true,
         "noUnusedLocals": false,
-        "noLib": false,
         "removeComments": true,
-        "experimentalDecorators": true,
-        "types": ["node"]
+        "types": ["node", "vitest/globals"],
+        "paths": {
+            "@prostojs/parser": ["./lib/src/index.ts"]
+        }
     },
-    "include": ["src/*", "src/**/*", "**/*.spec.ts"],
-    "exclude": ["node_modules", "explorations"]
+    "include": [
+        "lib/src/**/*.ts",
+        "lib/tests/**/*.ts",
+        "examples/*/src/**/*.ts",
+        "examples/*/tests/**/*.ts",
+        "bench/**/*.ts"
+    ],
+    "exclude": ["node_modules", "dist"]
 }
